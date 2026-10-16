@@ -9,6 +9,11 @@ export interface SavedPlan {
   formations: Record<string, Point[]>
 }
 
+export interface Season {
+  id: string
+  name: string
+}
+
 /** One of your teams: its own roster, lineup and saved formations. */
 export interface Squad {
   id: string
@@ -18,6 +23,7 @@ export interface Squad {
   /** Custom formations saved from the Rotations tab, keyed by formationKey(). */
   formations: Record<string, Point[]>
   plans?: SavedPlan[]
+  seasons?: Season[]
 }
 
 /** Everything the app stores. Matches belong to a team through match.teamId. */
@@ -34,6 +40,7 @@ export interface Data {
   setup: TeamSetup
   formations: Record<string, Point[]>
   plans: SavedPlan[]
+  seasons: Season[]
 }
 
 export const newId = () => Math.random().toString(36).slice(2, 10)
@@ -67,7 +74,7 @@ export const activeTeam = (root: Root) => root.teams.find((t) => t.id === root.a
 export function teamView(root: Root): Data {
   const t = activeTeam(root)
   return {
-    players: t.players, setup: t.setup, formations: t.formations, plans: t.plans ?? [],
+    players: t.players, setup: t.setup, formations: t.formations, plans: t.plans ?? [], seasons: t.seasons ?? [],
     matches: root.matches.filter((m) => m.teamId === t.id),
   }
 }
@@ -78,7 +85,7 @@ export function applyView(root: Root, view: Data): Root {
   return {
     ...root,
     teams: root.teams.map((x) =>
-      x.id === t.id ? { ...x, players: view.players, setup: view.setup, formations: view.formations, plans: view.plans } : x,
+      x.id === t.id ? { ...x, players: view.players, setup: view.setup, formations: view.formations, plans: view.plans, seasons: view.seasons } : x,
     ),
     matches: [...view.matches.map((m) => ({ ...m, teamId: t.id })), ...root.matches.filter((m) => m.teamId !== t.id)],
   }

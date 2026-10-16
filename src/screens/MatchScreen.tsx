@@ -6,6 +6,7 @@ import { replay, teamOf } from '../engine/rotation'
 import { SYSTEMS, defaultFormation, formationKey, onCourt } from '../engine/systems'
 import type { Match, StatEvent, Team } from '../engine/types'
 import { newId, type Data } from '../store'
+import { MatchDetailsForm, defaultDetails, typeLabel, type Details } from './MatchDetails'
 import { SetupEditor, setupComplete } from './SetupEditor'
 
 type SetData = (f: (d: Data) => Data) => void
@@ -25,6 +26,7 @@ function NewMatch({ data, setData, open }: { data: Data; setData: SetData; open:
   const [opponent, setOpponent] = useState('')
   const [bestOf, setBestOf] = useState<3 | 5>(3)
   const [firstServe, setFirstServe] = useState<Team>('us')
+  const [details, setDetails] = useState<Details>(() => defaultDetails(data.seasons))
   /** A saved rotation's id, or '' for the current lineup on the Rotations tab. */
   const [planId, setPlanId] = useState(() => data.plans[0]?.id ?? '')
   const plan = data.plans.find((p) => p.id === planId)
@@ -33,7 +35,7 @@ function NewMatch({ data, setData, open }: { data: Data; setData: SetData; open:
 
   const create = () => {
     const m: Match = {
-      id: newId(), opponent: opponent.trim(), date: Date.now(), bestOf, setup,
+      id: newId(), opponent: opponent.trim(), ...details, bestOf, setup,
       planName: plan?.name, formations: plan?.formations,
       sets: [{ lineup: setup.slots, firstServe, events: [] }],
     }
@@ -50,7 +52,7 @@ function NewMatch({ data, setData, open }: { data: Data; setData: SetData; open:
             <span className="muted small">{data.matches.length}</span>
           </div>
           <ul className="list">
-            {data.matches.map((m) => {
+            {[...data.matches].sort((a, b) => b.date - a.date).map((m) => {
               const s = matchSummary(m)
               const badge = s.winner === 'us' ? 'W' : s.winner === 'them' ? 'L' : 'Live'
               return (
@@ -58,7 +60,7 @@ function NewMatch({ data, setData, open }: { data: Data; setData: SetData; open:
                   <button className="row-button" onClick={() => open(m.id)}>
                     <span className="grow">
                       <span className="strong">vs {m.opponent}</span>
-                      <span className="muted small"> · {new Date(m.date).toLocaleDateString()}</span>
+                      <MatchMeta match={m} />
                     </span>
                     <span className="tabular">{s.won}–{s.lost}</span>
                     <span className={`badge badge-${badge.toLowerCase()}`}>{badge}</span>
@@ -73,6 +75,12 @@ function NewMatch({ data, setData, open }: { data: Data; setData: SetData; open:
       <div className="card">
         <div className="card-title">New match</div>
         <input placeholder="Opponent" aria-label="Opponent" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
+        <MatchDetailsForm
+          value={details}
+          onChange={setDetails}
+          seasons={data.seasons}
+          onAddSeason={(season) => setData((d) => ({ ...d, seasons: [...d.seasons, season] }))}
+        />
         <div className="field-row">
           <div className="seg">
             <button className={bestOf === 3 ? 'on' : ''} onClick={() => setBestOf(3)}>Best of 3</button>
@@ -124,6 +132,7 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
   const [now, setNow] = useState(Date.now())
   /** Scoreboard edit mode, for sets that start at a set score or to fix the score. */
   const [editScore, setEditScore] = useState(false)
+  const [editDetails, setEditDetails] = useState(false)
   /** Lineup change in progress: {} = choosing who comes in, { in } = choosing who they replace. */
   const [change, setChange] = useState<{ in?: string } | null>(null)
   useEffect(() => {
@@ -247,8 +256,27 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
     <section>
       <div className="topbar">
         <button className="link back" onClick={close}>‹ Matches</button>
-        <span className="muted small">vs {match.opponent} · Best of {match.bestOf}</span>
+        <button className="link small" onClick={() => setEditDetails(!editDetails)}>{editDetails ? 'Done' : 'Match details'}</button>
       </div>
+      <div className="match-meta">
+        <span className="strong">vs {match.opponent}</span>
+        <MatchMeta match={match} />
+        <span>· Best of {match.bestOf}</span>
+      </div>
+      {editDetails && (
+        <div className="card">
+          <label className="field">
+            <span>Opponent</span>
+            <input value={match.opponent} onChange={(e) => updateMatch((m) => ({ ...m, opponent: e.target.value }))} />
+          </label>
+          <MatchDetailsForm
+            value={match}
+            onChange={(d) => updateMatch((m) => ({ ...m, ...d }))}
+            seasons={data.seasons}
+            onAddSeason={(season) => setData((d) => ({ ...d, seasons: [...d.seasons, season] }))}
+          />
+        </div>
+      )}
 
       <div className="card scoreboard">
         <div className="score">
@@ -467,5 +495,18 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
         </ol>
       </details>
     </section>
+  )
+}
+
+/** Type badge, date and time, and place for a match. */
+export function MatchMeta({ match: m }: { match: Match }) {
+  const when = new Date(m.date)
+  return (
+    <span className="match-meta">
+      <span className={`type-badge ${m.type ?? 'other'}`}>{typeLabel(m.type)}{m.event ? ` · ${m.event}` : ''}</span>
+      <span>{when.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {when.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>
+      {(m.location || m.venue) && <span>· {[m.venue && m.venue[0].toUpperCase() + m.venue.slice(1), m.location].filter(Boolean).join(' · ')}</span>}
+      {m.countsInSeason === false && <span>· not in season</span>}
+    </span>
   )
 }

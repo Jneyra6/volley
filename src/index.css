@@ -404,3 +404,17 @@ td.neg { color: var(--bad); font-weight: 600; }
   .entry:has(.bench) .side-buttons button { flex: 1; }
   .entry:has(.bench) .actions { grid-template-columns: repeat(3, 1fr); }
 }
+
+.details-form { display: flex; flex-direction: column; gap: 10px; }
+.details-form .seg { align-self: flex-start; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 0.875rem; cursor: pointer; }
+.check input { width: 20px; height: 20px; min-height: 0; margin: 1px 0 0; accent-color: var(--accent); flex: none; }
+.type-badge { font-size: 0.6875rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--line); }
+.type-badge.region { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.type-badge.tournament, .type-badge.playoff { background: var(--gold-soft); color: color-mix(in srgb, var(--gold) 55%, var(--text)); border-color: transparent; }
+.type-badge.scrimmage { border-style: dashed; }
+.match-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.75rem; color: var(--muted); }
+.export-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter-chips button { border-radius: 999px; min-height: 34px; padding: 4px 12px; font-size: 0.8125rem; font-weight: 600; }

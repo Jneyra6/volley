@@ -2,13 +2,28 @@ import { useState } from 'react'
 import { ATTACK_TYPES, FAULT_KINDS } from '../engine/actions'
 import { manualChanges } from '../engine/match'
 import { replay, teamOf, type AnnotatedEvent } from '../engine/rotation'
-import { count, derive, fmt, teamRates, type Counts } from '../engine/stats'
+import { count, fmt, teamRates, type Counts } from '../engine/stats'
+import { downloadText } from '../download'
+import { fileSlug, matchInfoRows, maxPrepsFile, statSheet, toCsv } from '../engine/export'
+import { matchLines } from '../engine/report'
 import type { Data } from '../store'
+import { MatchMeta } from './MatchScreen'
+import { StatTable } from './StatTable'
 
-export function Reports({ data }: { data: Data }) {
-  const [matchId, setMatchId] = useState(data.matches[0]?.id ?? '')
+/** Report for one game: scores, team rates, player stats, and exports (MaxPreps and spreadsheet). */
+export function Reports({ data, teamName }: { data: Data; teamName: string }) {
+  const sorted = [...data.matches].sort((a, b) => b.date - a.date)
+  const [matchId, setMatchId] = useState(sorted[0]?.id ?? '')
   const match = data.matches.find((m) => m.id === matchId)
-  if (!match) return <section><div className="card"><div className="card-title">Reports</div><p className="empty">Record a match for this team first.</p></div></section>
+  if (!match) return <section><div className="card"><div className="card-title">Game report</div><p className="empty">Record a match for this team first.</p></div></section>
+
+  const report = matchLines(match)
+  const d = new Date(match.date)
+  const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const base = `${day}-${fileSlug(match.opponent)}`
+  const exportMaxPreps = () => downloadText(`maxpreps-${base}.txt`, maxPrepsFile(report.lines, data.players))
+  const exportCsv = () =>
+    downloadText(`stats-${base}.csv`, toCsv([...matchInfoRows(match, teamName), ...statSheet(report.lines, data.players)]), 'text/csv')
 
   const events: AnnotatedEvent[] = match.sets.flatMap((s) => replay(s).events)
   const team = teamRates(events)
@@ -28,10 +43,11 @@ export function Reports({ data }: { data: Data }) {
     <section>
       <div className="card">
         <select aria-label="Match" value={matchId} onChange={(e) => setMatchId(e.target.value)}>
-          {data.matches.map((m) => (
+          {sorted.map((m) => (
             <option key={m.id} value={m.id}>vs {m.opponent} · {new Date(m.date).toLocaleDateString()}</option>
           ))}
         </select>
+        <MatchMeta match={match} />
         <div className="stat-tiles">
           {match.sets.map((s, i) => {
             const { state } = replay(s)
@@ -55,29 +71,22 @@ export function Reports({ data }: { data: Data }) {
       </div>
 
       <div className="card">
-      <div className="card-title">Players</div>
-      <div className="scroll">
-        <table>
-          <thead>
-            <tr><th>Player</th><th>K</th><th>E</th><th>TA</th><th>Hit%</th><th>Ace</th><th>SE</th><th>Srv%</th><th>Pass</th><th>Dig</th><th>Blk</th><th>Ast</th></tr>
-          </thead>
-          <tbody>
-            {rows.map(({ id, label, c }) => {
-              const d = derive(c)
-              return (
-                <tr key={id} className={id === 'them' ? 'opp' : ''}>
-                  <td>{label}</td>
-                  <td>{c.kills}</td><td>{c.attackErrs}</td><td>{c.attackAttempts}</td><td>{fmt.hit(d.hittingPct)}</td>
-                  <td>{c.aces}</td><td>{c.serveErrs}</td><td>{fmt.pct(d.servePct)}</td>
-                  <td>{fmt.rating(d.passRating)}</td><td>{c.digs}</td><td>{c.blocks}</td><td>{c.assists}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <div className="card-title">Players</div>
+        <StatTable lines={report.lines} players={data.players} opponent={rows.find((r) => r.id === 'them')?.c} />
       </div>
 
-      <p className="muted small">K kills · E attack errors · TA total attempts · SE serve errors · Pass = 0–3 rating</p>
+      <div className="card">
+        <div className="card-head">
+          <span className="card-title">Export</span>
+        </div>
+        <div className="export-buttons">
+          <button className="primary" onClick={exportMaxPreps}>MaxPreps file (.txt)</button>
+          <button onClick={exportCsv}>Spreadsheet (.csv)</button>
+        </div>
+        <p className="muted small">
+          In MaxPreps, open this game, choose to import stats, and pick the .txt file. Jersey numbers must match your
+          MaxPreps roster exactly. The spreadsheet opens in Excel, Numbers or Google Sheets.
+        </p>
       </div>
 
       {(Object.keys(ours.killTypes).length > 0 || Object.keys(ours.faultKinds).length > 0) && (

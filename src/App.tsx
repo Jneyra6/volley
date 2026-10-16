@@ -3,10 +3,11 @@ import { MatchScreen } from './screens/MatchScreen'
 import { Reports } from './screens/Reports'
 import { Roster } from './screens/Roster'
 import { Rotations } from './screens/Rotations'
+import { Season } from './screens/Season'
 import { useRoot } from './store'
 import { activeTeam, applyView, teamView, type Data, type Root } from './teams'
 
-const TABS = ['Roster', 'Rotations', 'Match', 'Reports'] as const
+const TABS = ['Roster', 'Rotations', 'Match', 'Game', 'Season'] as const
 type Tab = (typeof TABS)[number]
 
 /** Simple line icons for the tab bar (24px grid, drawn with currentColor). */
@@ -25,10 +26,11 @@ const ICONS: Record<Tab, React.ReactNode> = {
       ))}
     </g>
   ),
-  Reports: <><path d="M4 20h16" /><rect x="5.5" y="11" width="3" height="6" rx="1" /><rect x="10.5" y="6" width="3" height="11" rx="1" /><rect x="15.5" y="13" width="3" height="4" rx="1" /></>,
+  Game: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 13.5h7M8.5 17h4" /></>,
+  Season: <><path d="M4 20h16" /><rect x="5.5" y="11" width="3" height="6" rx="1" /><rect x="10.5" y="6" width="3" height="11" rx="1" /><rect x="15.5" y="13" width="3" height="4" rx="1" /></>,
 }
 
-const TITLES: Record<Tab, string> = { Roster: 'Roster', Rotations: 'Rotations', Match: 'Match', Reports: 'Reports' }
+const TITLES: Record<Tab, string> = { Roster: 'Roster', Rotations: 'Rotations', Match: 'Match', Game: 'Game report', Season: 'Season' }
 
 export default function App() {
   const [root, setRoot] = useRoot()
@@ -65,7 +67,8 @@ export default function App() {
         {tab === 'Roster' && <Roster data={data} setData={setData} root={root} setRoot={setRoot} switchTeam={switchTeam} />}
         {tab === 'Rotations' && <Rotations data={data} setData={setData} />}
         {tab === 'Match' && <MatchScreen data={data} setData={setData} openId={openMatch} setOpenId={setOpenMatch} />}
-        {tab === 'Reports' && <Reports data={data} />}
+        {tab === 'Game' && <Reports data={data} teamName={activeTeam(root).name} />}
+        {tab === 'Season' && <Season data={data} setData={setData} teamName={activeTeam(root).name} />}
       </main>
       <nav>
         {TABS.map((t) => (
