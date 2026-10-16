@@ -2,6 +2,7 @@ import type { jsPDF as JsPDFType } from 'jspdf'
 import {
   PHASES, SYSTEMS, defaultFormation, formationKey, onCourt, rotationNotes, type CourtSpot, type Phase, type TeamSetup,
 } from './engine/systems'
+import { HOME } from './engine/rotation'
 import type { Player, Point } from './engine/types'
 
 export interface RotationsPdfInput {
@@ -11,8 +12,25 @@ export interface RotationsPdfInput {
   setup: TeamSetup
   formations: Record<string, Point[]>
   players: Player[]
-  phases: Phase[]
+  pages: PdfPage[]
 }
+
+/** A PDF page: the basic rotation order, or one of the formations from the Rotations tab. */
+export type PdfPage = 'rotation' | Phase
+
+/** Pages offered for the PDF, in the order they print. Labels follow coaches' wording. */
+export const PDF_PAGES: { id: PdfPage; label: string; help: string }[] = [
+  {
+    id: 'rotation', label: 'Rotation',
+    help: 'Rotation order: where each player lines up in their spot, before anyone switches. Position 1 serves.',
+  },
+  { id: 'serve', label: 'Serve', help: PHASES.find((p) => p.id === 'serve')!.help },
+  { id: 'receive', label: 'Serve receive', help: PHASES.find((p) => p.id === 'receive')!.help },
+  { id: 'base', label: 'Base', help: PHASES.find((p) => p.id === 'base')!.help },
+  { id: 'defL', label: 'Defense left', help: PHASES.find((p) => p.id === 'defL')!.help },
+  { id: 'defM', label: 'Defense middle', help: PHASES.find((p) => p.id === 'defM')!.help },
+  { id: 'defR', label: 'Defense right', help: PHASES.find((p) => p.id === 'defR')!.help },
+]
 
 // Letter page, in points.
 const PAGE_W = 612
@@ -196,8 +214,8 @@ function lineupPage(doc: JsPDFType, input: RotationsPdfInput) {
 }
 
 /** One page per phase: all six rotations in a 2 x 3 grid, each with its notes. */
-function phasePage(doc: JsPDFType, input: RotationsPdfInput, phase: Phase) {
-  const info = PHASES.find((p) => p.id === phase)!
+function phasePage(doc: JsPDFType, input: RotationsPdfInput, page: PdfPage) {
+  const info = PDF_PAGES.find((p) => p.id === page)!
   header(doc, input, info.label)
   doc.setFontSize(9)
   doc.setTextColor(C.muted)
@@ -207,22 +225,25 @@ function phasePage(doc: JsPDFType, input: RotationsPdfInput, phase: Phase) {
   const size = 170
   const rowH = 215
   const top = M + 60
-  const weServe = phase !== 'receive'
+  const weServe = page !== 'receive'
+  // The rotation-order page shows the six rotating players in their spots, without libero or sub swaps.
+  const setup = page === 'rotation' ? { ...input.setup, libero: null, subs: [] } : input.setup
 
   for (let rotation = 1; rotation <= 6; rotation++) {
     const col = (rotation - 1) % 2
     const row = Math.floor((rotation - 1) / 2)
     const x = M + col * colW
     const y = top + row * rowH
-    const spots = input.formations[formationKey(input.setup.system, rotation, phase)]
-      ?? defaultFormation(input.setup.system, rotation, phase)
-    const court = onCourt(input.setup, rotation, weServe)
+    const spots = page === 'rotation'
+      ? HOME
+      : input.formations[formationKey(input.setup.system, rotation, page)] ?? defaultFormation(input.setup.system, rotation, page)
+    const court = onCourt(setup, rotation, weServe)
 
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(11)
     doc.setTextColor(C.text)
     doc.text(`Rotation ${rotation}`, x, y + 8)
-    drawCourt(doc, x, y + 14, size, court, spots, input.players, phase === 'serve')
+    drawCourt(doc, x, y + 14, size, court, spots, input.players, page === 'serve' || page === 'rotation')
 
     // Notes to the right of the court.
     const notesX = x + size + 8
@@ -247,9 +268,9 @@ export function buildRotationsPdf(JsPDF: typeof JsPDFType, input: RotationsPdfIn
   const doc = new JsPDF({ unit: 'pt', format: 'letter' })
   doc.setProperties({ title: `${input.teamName} rotations - ${input.title}`, creator: 'Volley' })
   lineupPage(doc, input)
-  for (const phase of input.phases) {
+  for (const { id } of PDF_PAGES.filter((p) => input.pages.includes(p.id))) {
     doc.addPage()
-    phasePage(doc, input, phase)
+    phasePage(doc, input, id)
   }
   const total = doc.getNumberOfPages()
   for (let i = 1; i <= total; i++) {

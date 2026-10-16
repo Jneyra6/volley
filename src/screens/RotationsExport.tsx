@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { jsPDF as JsPDFType } from 'jspdf'
-import { PHASES, type Phase } from '../engine/systems'
 import { fileSlug } from '../engine/export'
-import { buildRotationsPdf } from '../rotationsPdf'
+import { PDF_PAGES, buildRotationsPdf, type PdfPage } from '../rotationsPdf'
 import type { Data } from '../store'
 import { setupComplete } from './SetupEditor'
 
@@ -15,19 +14,18 @@ export function RotationsExport({ data, teamName }: { data: Data; teamName: stri
   }, [])
 
   const [source, setSource] = useState('') // '' = current lineup, otherwise a saved rotation id
-  const [phases, setPhases] = useState<Phase[]>(['receive', 'serve', 'base'])
+  const [pages, setPages] = useState<PdfPage[]>(['rotation', 'serve', 'receive', 'base'])
   const [message, setMessage] = useState('')
 
   const plan = data.plans.find((p) => p.id === source)
   const setup = plan?.setup ?? data.setup
-  const ready = !!JsPDF && setupComplete(setup) && phases.length > 0
+  const ready = !!JsPDF && setupComplete(setup) && pages.length > 0
   const title = plan?.name ?? 'Current lineup'
   const filename = `rotations-${fileSlug(teamName)}-${fileSlug(title)}.pdf`
 
   const make = () =>
     buildRotationsPdf(JsPDF!, {
-      teamName, title, setup, formations: plan?.formations ?? data.formations, players: data.players,
-      phases: PHASES.map((p) => p.id).filter((id) => phases.includes(id)),
+      teamName, title, setup, formations: plan?.formations ?? data.formations, players: data.players, pages,
     })
 
   const canShareFiles = typeof navigator.canShare === 'function' &&
@@ -46,14 +44,14 @@ export function RotationsExport({ data, teamName }: { data: Data; teamName: stri
     make().save(filename)
     setMessage('PDF saved.')
   }
-  const toggle = (p: Phase) => setPhases((ps) => (ps.includes(p) ? ps.filter((x) => x !== p) : [...ps, p]))
+  const toggle = (p: PdfPage) => setPages((ps) => (ps.includes(p) ? ps.filter((x) => x !== p) : [...ps, p]))
 
   return (
     <div className="card">
       <div className="card-head">
         <span className="card-title">Rotations PDF</span>
       </div>
-      <p className="muted small">A lineup page, then one page per formation with all six rotations, to send to players.</p>
+      <p className="muted small">A lineup page, then one page per item below with all six rotations, to send to players.</p>
       {data.plans.length > 0 && (
         <label className="field">
           <span>Rotation</span>
@@ -63,9 +61,9 @@ export function RotationsExport({ data, teamName }: { data: Data; teamName: stri
           </select>
         </label>
       )}
-      <div className="filter-chips" role="group" aria-label="Formations to include">
-        {PHASES.map((p) => (
-          <button key={p.id} className={phases.includes(p.id) ? 'on' : ''} aria-pressed={phases.includes(p.id)} onClick={() => toggle(p.id)}>
+      <div className="filter-chips" role="group" aria-label="Pages to include">
+        {PDF_PAGES.map((p) => (
+          <button key={p.id} className={pages.includes(p.id) ? 'on' : ''} aria-pressed={pages.includes(p.id)} onClick={() => toggle(p.id)}>
             {p.label}
           </button>
         ))}

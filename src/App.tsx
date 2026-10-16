@@ -4,6 +4,7 @@ import { Reports } from './screens/Reports'
 import { Roster } from './screens/Roster'
 import { Rotations } from './screens/Rotations'
 import { Season } from './screens/Season'
+import { HelpButton } from './Help'
 import { useRoot } from './store'
 import { activeTeam, applyView, teamView, type Data, type Root } from './teams'
 
@@ -55,12 +56,15 @@ export default function App() {
             <div className="brand-sub">{TITLES[tab]}</div>
           </div>
         </div>
-        <label className="team-switch">
-          <span className="sr-only">Team</span>
-          <select value={activeTeam(root).id} onChange={(e) => switchTeam(e.target.value)}>
-            {root.teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </label>
+        <div className="header-actions">
+          <label className="team-switch">
+            <span className="sr-only">Team</span>
+            <select value={activeTeam(root).id} onChange={(e) => switchTeam(e.target.value)}>
+              {root.teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </label>
+          <HelpButton tab={tab} />
+        </div>
       </header>
       {/* Keyed by team so each tab starts fresh when you switch teams. */}
       <main key={activeTeam(root).id}>
