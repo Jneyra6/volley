@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1d4ed8"/>
+  <g fill="none" stroke="#ffffff" stroke-width="20" stroke-linecap="round" transform="translate(256 256)">
+    <circle r="150"/>
+    <!-- Three seams sweeping from the center to the rim, 120° apart, each with a parallel panel line. -->
+    <g id="seam">
+      <path d="M0 0 A150 150 0 0 1 130 -75"/>
+      <path d="M-62 -36 A210 210 0 0 1 75 -130"/>
+    </g>
+    <use href="#seam" transform="rotate(120)"/>
+    <use href="#seam" transform="rotate(240)"/>
+  </g>
+</svg>
