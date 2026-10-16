@@ -8,6 +8,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-10-16-updates',
+    date: '2026-10-16',
+    title: 'Updates arrive reliably',
+    items: [
+      'The app checks for a new version every time you come back to it, not only when it starts fresh.',
+      'When an update is ready, a bar appears at the top: tap Update to switch. It never reloads by itself in the middle of a match.',
+      'What\'s new shows the version you\'re on.',
+    ],
+  },
+  {
     id: '2026-10-16-pdf-help',
     date: '2026-10-16',
     title: 'Rotations PDF, help and this updates list',

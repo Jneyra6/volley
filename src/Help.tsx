@@ -146,6 +146,8 @@ export function HelpButton({ tab }: { tab: string }) {
                   </details>
                 ))
               ) : (
+                <>
+                <p className="muted small">You're on version {__APP_VERSION__}. Updates install when you tap Update on the bar that appears.</p>
                 <ol className="timeline">
                   {CHANGELOG.map((r) => (
                     <li key={r.id}>
@@ -155,6 +157,7 @@ export function HelpButton({ tab }: { tab: string }) {
                     </li>
                   ))}
                 </ol>
+                </>
               )}
             </div>
           </div>

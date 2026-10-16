@@ -456,3 +456,11 @@ td.neg { color: var(--bad); font-weight: 600; }
 .timeline > li { position: relative; display: flex; flex-direction: column; gap: 4px; }
 .timeline > li::before { content: ''; position: absolute; left: -23px; top: 3px; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); border: 2px solid var(--bg); }
 .timeline > li:first-child::before { background: var(--good); }
+
+.update-banner {
+  position: sticky; top: calc(61px + env(safe-area-inset-top)); z-index: 9;
+  display: flex; align-items: center; gap: 8px; margin: 8px 16px 0; padding: 10px 12px;
+  border-radius: var(--radius); background: var(--accent-soft); border: 1px solid var(--accent); font-size: 0.875rem; font-weight: 500;
+}
+.update-banner span { flex: 1; }
+.update-banner .primary { min-height: 36px; padding: 6px 14px; }

@@ -5,6 +5,7 @@ import { Roster } from './screens/Roster'
 import { Rotations } from './screens/Rotations'
 import { Season } from './screens/Season'
 import { HelpButton } from './Help'
+import { UpdateBanner } from './UpdateBanner'
 import { useRoot } from './store'
 import { activeTeam, applyView, teamView, type Data, type Root } from './teams'
 
@@ -66,6 +67,7 @@ export default function App() {
           <HelpButton tab={tab} />
         </div>
       </header>
+      <UpdateBanner />
       {/* Keyed by team so each tab starts fresh when you switch teams. */}
       <main key={activeTeam(root).id}>
         {tab === 'Roster' && <Roster data={data} setData={setData} root={root} setRoot={setRoot} switchTeam={switchTeam} />}
