@@ -88,7 +88,7 @@ export function Rotations({ data, setData }: { data: Data; setData: (f: (d: Data
 
         <div className="row between">
           <span className="muted small">
-            {saved ? 'Your formation (saved)' : 'Default formation · drag players to change it'}
+            {saved ? 'Your formation (saved)' : 'Default formation'} · drag a player, or tap one and then tap where they go
             {saved && overlapApplies(phase) ? ' · used in Match' : ''}
           </span>
           <button className="link" disabled={!saved} onClick={reset}>Reset</button>

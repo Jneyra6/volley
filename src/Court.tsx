@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CourtSpot } from './engine/systems'
 import type { Player, Point } from './engine/types'
 
@@ -10,46 +10,110 @@ interface Props {
   server?: boolean // highlight position 1 as the server
   selected?: string | null
   onMove?: (index: number, p: Point) => void
-  /** Called once when a drag ends, with the final spot. */
+  /** Called once when a move ends (drag released, or tap-to-place), with the final spot. */
   onDrop?: (index: number, p: Point) => void
   onTap?: (playerId: string) => void
 }
 
 const W = 300
 const H = 300
+/** A finger has to travel this far (screen px) before a press becomes a drag, so taps stay taps. */
+const DRAG_SLOP = 6
 
-/** Our half of the court, net at the top. Players slide between spots and can be dragged when onMove is given. */
+interface Drag {
+  index: number
+  pointerId: number
+  startX: number
+  startY: number
+  /** Where on the chip it was grabbed, so the chip stays under the finger instead of jumping to it. */
+  offset: Point
+  moved: boolean
+  last: Point | null
+}
+
+/**
+ * Our half of the court, net at the top. Players slide between spots. When onMove is given they can be moved
+ * two ways: drag them, or tap a player and then tap the spot where they should go (easier with a finger).
+ */
 export function Court({ court, players, spots, server, selected, onMove, onDrop, onTap }: Props) {
   const svg = useRef<SVGSVGElement>(null)
-  // The ref drives the handlers (pointer events can arrive before a re-render); the state only styles the chip.
-  const drag = useRef<{ index: number; last: Point | null } | null>(null)
+  // The ref drives the handlers (pointer events can arrive before a re-render); state only styles the chips.
+  const drag = useRef<Drag | null>(null)
   const [dragging, setDragging] = useState<number | null>(null)
+  /** Player picked by a tap, waiting for a tap on the court to move there. */
+  const [picked, setPicked] = useState<number | null>(null)
+  const editable = !!onMove
 
-  const toPoint = (e: React.PointerEvent): Point => {
+  // iPhones don't reliably honor touch-action on SVG, so stop the page scrolling or zooming while a player is held.
+  useEffect(() => {
+    const el = svg.current
+    if (!el || !editable) return
+    const block = (e: TouchEvent) => {
+      if (drag.current) e.preventDefault()
+    }
+    el.addEventListener('touchmove', block, { passive: false })
+    return () => el.removeEventListener('touchmove', block)
+  }, [editable])
+
+  const toPoint = (clientX: number, clientY: number): Point => {
     const r = svg.current!.getBoundingClientRect()
-    const clamp = (v: number) => Math.min(0.97, Math.max(0.03, v))
-    return { x: clamp((e.clientX - r.left) / r.width), y: clamp((e.clientY - r.top) / r.height) }
+    return { x: (clientX - r.left) / r.width, y: (clientY - r.top) / r.height }
+  }
+  const clamp = (p: Point): Point => ({ x: Math.min(0.96, Math.max(0.04, p.x)), y: Math.min(0.97, Math.max(0.04, p.y)) })
+
+  const start = (e: React.PointerEvent, i: number) => {
+    if (!editable) return
+    e.stopPropagation()
+    const at = toPoint(e.clientX, e.clientY)
+    drag.current = {
+      index: i, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY,
+      offset: { x: spots[i].x - at.x, y: spots[i].y - at.y }, moved: false, last: null,
+    }
+    svg.current?.setPointerCapture?.(e.pointerId)
   }
   const move = (e: React.PointerEvent) => {
-    if (!drag.current) return
-    drag.current.last = toPoint(e)
-    onMove?.(drag.current.index, drag.current.last)
-  }
-  const stop = () => {
     const d = drag.current
+    if (!d || e.pointerId !== d.pointerId) return
+    if (!d.moved) {
+      if (Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < DRAG_SLOP) return
+      d.moved = true
+      setDragging(d.index)
+      setPicked(null)
+    }
+    const at = toPoint(e.clientX, e.clientY)
+    d.last = clamp({ x: at.x + d.offset.x, y: at.y + d.offset.y })
+    onMove?.(d.index, d.last)
+  }
+  const end = (e: React.PointerEvent, cancelled = false) => {
+    const d = drag.current
+    if (!d || e.pointerId !== d.pointerId) return
     drag.current = null
     setDragging(null)
-    if (d?.last) onDrop?.(d.index, d.last)
+    if (d.moved) {
+      if (d.last) onDrop?.(d.index, d.last)
+    } else if (!cancelled) {
+      // A tap on a player picks them (tap again to put them back down).
+      setPicked((p) => (p === d.index ? null : d.index))
+    }
+  }
+  /** Tap on open court while a player is picked: move them there. */
+  const place = (e: React.PointerEvent) => {
+    if (picked === null || drag.current) return
+    const p = clamp(toPoint(e.clientX, e.clientY))
+    onMove?.(picked, p)
+    onDrop?.(picked, p)
+    setPicked(null)
   }
 
   return (
     <svg
       ref={svg}
-      className="court"
+      className={`court ${picked !== null ? 'placing' : ''}`}
       viewBox={`0 0 ${W} ${H}`}
+      onPointerDown={place}
       onPointerMove={move}
-      onPointerUp={stop}
-      onPointerLeave={stop}
+      onPointerUp={(e) => end(e)}
+      onPointerCancel={(e) => end(e, true)}
     >
       <rect x="0" y="0" width={W} height={H} rx="6" className="court-floor" />
       <rect x="0" y="0" width={W} height={H / 3} className="court-front" />
@@ -60,25 +124,20 @@ export function Court({ court, players, spots, server, selected, onMove, onDrop,
       {spots.map((s, i) => {
         const c = court[i]
         const p = players.find((x) => x.id === c?.playerId)
-        const cls = ['chip', i === 0 && server && 'server', c && c.playerId === selected && 'selected', c?.libero && 'libero']
-          .filter(Boolean)
-          .join(' ')
+        const cls = [
+          'chip', i === 0 && server && 'server', c && c.playerId === selected && 'selected', c?.libero && 'libero',
+          picked === i && 'picked', dragging === i && 'dragging',
+        ].filter(Boolean).join(' ')
         return (
           <g
             key={i}
             className={cls}
-            style={{
-              transform: `translate(${s.x * W}px, ${s.y * H}px)`,
-              transition: dragging === i ? 'none' : undefined,
-            }}
-            onPointerDown={(e) => {
-              if (!onMove) return
-              drag.current = { index: i, last: null }
-              setDragging(i)
-              svg.current?.setPointerCapture?.(e.pointerId)
-            }}
-            onClick={() => c && onTap?.(c.playerId)}
+            style={{ transform: `translate(${s.x * W}px, ${s.y * H}px)` }}
+            onPointerDown={(e) => start(e, i)}
+            onClick={() => !editable && c && onTap?.(c.playerId)}
           >
+            {/* Bigger invisible touch target than the visible chip. */}
+            <circle r="34" className="hit" />
             <circle r="24" />
             <text y="-2">{p ? `#${p.number}` : '?'}</text>
             <text y="12" className="chip-sub">{c?.libero ? 'L' : c?.sub ? p?.role : c?.role ?? ''} · {i + 1}</text>
