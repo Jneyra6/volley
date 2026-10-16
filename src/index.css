@@ -464,3 +464,18 @@ td.neg { color: var(--bad); font-weight: 600; }
 }
 .update-banner span { flex: 1; }
 .update-banner .primary { min-height: 36px; padding: 6px 14px; }
+
+/* ---------- Install banner (browser only) ---------- */
+.install-banner {
+  margin: 12px 16px 0; padding: 14px; border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--accent); box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.install-head { display: flex; gap: 12px; align-items: center; }
+.install-head img { border-radius: 10px; flex: none; }
+.install-head div { display: flex; flex-direction: column; gap: 2px; }
+.install-steps { margin: 0; padding-left: 20px; font-size: 0.875rem; display: grid; gap: 6px; }
+.share-icon { width: 18px; height: 18px; vertical-align: -3px; margin-left: 4px; fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.install-warning { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--gold-soft); font-size: 0.8125rem; }
+.install-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+.install-actions .primary { min-height: 38px; padding: 6px 18px; }

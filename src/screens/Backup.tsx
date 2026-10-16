@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { downloadText } from '../download'
+import { isInstalledApp } from '../InstallPrompt'
 import type { Root } from '../teams'
 
 const isRoot = (x: unknown): x is Root =>
@@ -11,7 +12,7 @@ export function Backup({ root, setRoot }: { root: Root; setRoot: (r: Root) => vo
   const file = useRef<HTMLInputElement>(null)
   const [protectedData, setProtectedData] = useState<boolean | null>(null)
   const [message, setMessage] = useState('')
-  const standalone = window.matchMedia?.('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone
+  const standalone = isInstalledApp()
 
   useEffect(() => {
     navigator.storage?.persisted?.().then(setProtectedData).catch(() => setProtectedData(null))

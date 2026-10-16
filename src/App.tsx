@@ -5,6 +5,7 @@ import { Roster } from './screens/Roster'
 import { Rotations } from './screens/Rotations'
 import { Season } from './screens/Season'
 import { HelpButton } from './Help'
+import { InstallPrompt } from './InstallPrompt'
 import { UpdateBanner } from './UpdateBanner'
 import { useRoot } from './store'
 import { activeTeam, applyView, teamView, type Data, type Root } from './teams'
@@ -68,6 +69,7 @@ export default function App() {
         </div>
       </header>
       <UpdateBanner />
+      <InstallPrompt hasData={root.teams.some((t) => t.players.length > 0) || root.matches.length > 0} />
       {/* Keyed by team so each tab starts fresh when you switch teams. */}
       <main key={activeTeam(root).id}>
         {tab === 'Roster' && <Roster data={data} setData={setData} root={root} setRoot={setRoot} switchTeam={switchTeam} />}

@@ -8,6 +8,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-10-16-install',
+    date: '2026-10-16',
+    title: 'Install reminder for browser users',
+    items: [
+      'Opening Volley in a browser tab now shows how to add it to your Home Screen (step by step on iPhone, an Install button on Android and Chrome).',
+      'If you already entered teams in the browser, it reminds you to save a backup and restore it in the Home Screen app.',
+      'Tap Not now to hide it for a week. It never shows in the Home Screen app.',
+    ],
+  },
+  {
     id: '2026-10-16-updates',
     date: '2026-10-16',
     title: 'Updates arrive reliably',
