@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Player, Role } from '../engine/types'
 import { newId, type Data } from '../store'
 import { newSquad, type Root } from '../teams'
+import { Backup } from './Backup'
 
 /** Most players a team can carry. */
 export const MAX_PLAYERS = 14
@@ -79,6 +80,7 @@ export function Roster({ data, setData, root, setRoot, switchTeam }: {
           ))}
         </ul>
       </div>
+      <Backup root={root} setRoot={(r) => setRoot(() => r)} />
     </section>
   )
 }

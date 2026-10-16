@@ -25,6 +25,10 @@ function load(): Root {
 /** All app data (every team), saved to the device after every change. */
 export function useRoot() {
   const [root, setRoot] = useState<Root>(load)
+  // Ask the browser to keep this app's data even when the phone cleans up website storage.
+  useEffect(() => {
+    navigator.storage?.persist?.().catch(() => {})
+  }, [])
   useEffect(() => {
     try {
       localStorage.setItem(KEY, JSON.stringify(root))

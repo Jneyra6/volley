@@ -280,13 +280,15 @@ ul.status.bad { background: var(--bad-soft); padding-left: 28px; }
 .court-line { stroke: var(--floor-line); stroke-width: 2; stroke-dasharray: 6 5; opacity: 0.9; }
 .court-net { stroke: var(--net); stroke-width: 6; stroke-linecap: round; }
 .court-label { fill: var(--floor-line); font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-anchor: middle; opacity: 0.85; }
-.chip { cursor: pointer; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.chip circle { fill: var(--chip); stroke: #fff; stroke-width: 2.5; filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.25)); transition: fill 0.2s; }
+.chip { cursor: pointer; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform; }
+/* A plain offset circle as the shadow: SVG drop-shadow filters are slow to redraw on phones. */
+.chip .shadow { fill: rgb(0 0 0 / 0.22); }
+.chip .disc { fill: var(--chip); stroke: #fff; stroke-width: 2.5; transition: fill 0.2s; }
 .chip text { fill: #fff; text-anchor: middle; font-size: 13px; font-weight: 700; pointer-events: none; }
 .chip .chip-sub { font-size: 8.5px; font-weight: 500; opacity: 0.9; }
-.chip.libero circle { fill: var(--chip-libero); }
-.chip.server circle { stroke: var(--gold); stroke-width: 4.5; }
-.chip.selected circle { fill: var(--chip-selected); }
+.chip.libero .disc { fill: var(--chip-libero); }
+.chip.server .disc { stroke: var(--gold); stroke-width: 4.5; }
+.chip.selected .disc { fill: var(--chip-selected); }
 @media (prefers-reduced-motion: reduce) { .chip { transition: none; } }
 
 /* ---------- Match ---------- */
@@ -421,9 +423,9 @@ td.neg { color: var(--bad); font-weight: 600; }
 .filter-chips button { border-radius: 999px; min-height: 34px; padding: 4px 12px; font-size: 0.8125rem; font-weight: 600; }
 
 /* Court touch: a larger invisible hit area, no lag while dragging, and a gold ring on a tapped (picked) player. */
-.chip .hit { fill: transparent !important; stroke: none !important; filter: none !important; }
+.chip .hit { fill: transparent; }
 .chip.dragging { transition: none; }
-.chip.dragging circle:not(.hit) { filter: drop-shadow(0 6px 8px rgb(0 0 0 / 0.35)); }
-.chip.picked circle:not(.hit) { stroke: var(--gold); stroke-width: 5; animation: picked 1s ease-in-out infinite; }
+.chip.dragging .shadow { transform: translateY(4px); fill: rgb(0 0 0 / 0.3); }
+.chip.picked .disc { stroke: var(--gold); stroke-width: 5; animation: picked 1s ease-in-out infinite; }
 @keyframes picked { 50% { stroke-width: 8; } }
-@media (prefers-reduced-motion: reduce) { .chip.picked circle:not(.hit) { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .chip.picked .disc { animation: none; } }

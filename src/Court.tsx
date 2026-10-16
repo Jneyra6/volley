@@ -9,8 +9,7 @@ interface Props {
   spots: Point[]
   server?: boolean // highlight position 1 as the server
   selected?: string | null
-  onMove?: (index: number, p: Point) => void
-  /** Called once when a move ends (drag released, or tap-to-place), with the final spot. */
+  /** Makes players movable. Called once when a move ends (drag released, or tap-to-place), with the final spot. */
   onDrop?: (index: number, p: Point) => void
   onTap?: (playerId: string) => void
 }
@@ -32,17 +31,18 @@ interface Drag {
 }
 
 /**
- * Our half of the court, net at the top. Players slide between spots. When onMove is given they can be moved
+ * Our half of the court, net at the top. Players slide between spots. When onDrop is given they can be moved
  * two ways: drag them, or tap a player and then tap the spot where they should go (easier with a finger).
  */
-export function Court({ court, players, spots, server, selected, onMove, onDrop, onTap }: Props) {
+export function Court({ court, players, spots, server, selected, onDrop, onTap }: Props) {
   const svg = useRef<SVGSVGElement>(null)
   // The ref drives the handlers (pointer events can arrive before a re-render); state only styles the chips.
   const drag = useRef<Drag | null>(null)
-  const [dragging, setDragging] = useState<number | null>(null)
+  /** Player elements, moved directly while dragging so the screen doesn't redraw on every finger movement. */
+  const chipEls = useRef<(SVGGElement | null)[]>([])
   /** Player picked by a tap, waiting for a tap on the court to move there. */
   const [picked, setPicked] = useState<number | null>(null)
-  const editable = !!onMove
+  const editable = !!onDrop
 
   // iPhones don't reliably honor touch-action on SVG, so stop the page scrolling or zooming while a player is held.
   useEffect(() => {
@@ -74,21 +74,22 @@ export function Court({ court, players, spots, server, selected, onMove, onDrop,
   const move = (e: React.PointerEvent) => {
     const d = drag.current
     if (!d || e.pointerId !== d.pointerId) return
+    const el = chipEls.current[d.index]
     if (!d.moved) {
       if (Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < DRAG_SLOP) return
       d.moved = true
-      setDragging(d.index)
+      el?.classList.add('dragging')
       setPicked(null)
     }
     const at = toPoint(e.clientX, e.clientY)
     d.last = clamp({ x: at.x + d.offset.x, y: at.y + d.offset.y })
-    onMove?.(d.index, d.last)
+    if (el) el.style.transform = `translate(${d.last.x * W}px, ${d.last.y * H}px)`
   }
   const end = (e: React.PointerEvent, cancelled = false) => {
     const d = drag.current
     if (!d || e.pointerId !== d.pointerId) return
     drag.current = null
-    setDragging(null)
+    chipEls.current[d.index]?.classList.remove('dragging')
     if (d.moved) {
       if (d.last) onDrop?.(d.index, d.last)
     } else if (!cancelled) {
@@ -100,7 +101,6 @@ export function Court({ court, players, spots, server, selected, onMove, onDrop,
   const place = (e: React.PointerEvent) => {
     if (picked === null || drag.current) return
     const p = clamp(toPoint(e.clientX, e.clientY))
-    onMove?.(picked, p)
     onDrop?.(picked, p)
     setPicked(null)
   }
@@ -126,11 +126,12 @@ export function Court({ court, players, spots, server, selected, onMove, onDrop,
         const p = players.find((x) => x.id === c?.playerId)
         const cls = [
           'chip', i === 0 && server && 'server', c && c.playerId === selected && 'selected', c?.libero && 'libero',
-          picked === i && 'picked', dragging === i && 'dragging',
+          picked === i && 'picked',
         ].filter(Boolean).join(' ')
         return (
           <g
             key={i}
+            ref={(el) => { chipEls.current[i] = el }}
             className={cls}
             style={{ transform: `translate(${s.x * W}px, ${s.y * H}px)` }}
             onPointerDown={(e) => start(e, i)}
@@ -138,7 +139,8 @@ export function Court({ court, players, spots, server, selected, onMove, onDrop,
           >
             {/* Bigger invisible touch target than the visible chip. */}
             <circle r="34" className="hit" />
-            <circle r="24" />
+            <circle r="24" cy="2" className="shadow" />
+            <circle r="24" className="disc" />
             <text y="-2">{p ? `#${p.number}` : '?'}</text>
             <text y="12" className="chip-sub">{c?.libero ? 'L' : c?.sub ? p?.role : c?.role ?? ''} · {i + 1}</text>
           </g>

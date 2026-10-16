@@ -16,11 +16,10 @@ export function Rotations({ data, setData }: { data: Data; setData: (f: (d: Data
   const { setup } = data
   const [rotation, setRotation] = useState(1)
   const [phase, setPhase] = useState<Phase>('receive')
-  const [draft, setDraft] = useState<Point[] | null>(null) // positions while a drag is in progress
 
   const key = formationKey(setup.system, rotation, phase)
   const saved = data.formations[key]
-  const spots = draft ?? saved ?? defaultFormation(setup.system, rotation, phase)
+  const spots = saved ?? defaultFormation(setup.system, rotation, phase)
   const weServe = phase !== 'receive'
   const court = onCourt(setup, rotation, weServe)
   const notes = rotationNotes(setup, rotation, weServe, data.players)
@@ -29,16 +28,13 @@ export function Rotations({ data, setData }: { data: Data; setData: (f: (d: Data
 
   const go = (r: number) => {
     setRotation(((r + 5) % 6) + 1)
-    setDraft(null)
   }
   const pick = (p: Phase) => {
     setPhase(p)
-    setDraft(null)
   }
   const save = (i: number, p: Point) => {
     const base = data.formations[key] ?? defaultFormation(setup.system, rotation, phase)
     setData((d) => ({ ...d, formations: { ...d.formations, [key]: Object.assign([...base], { [i]: p }) } }))
-    setDraft(null)
   }
   const reset = () => {
     setData((d) => {
@@ -46,7 +42,6 @@ export function Rotations({ data, setData }: { data: Data; setData: (f: (d: Data
       delete formations[key]
       return { ...d, formations }
     })
-    setDraft(null)
   }
 
   return (
@@ -82,7 +77,6 @@ export function Rotations({ data, setData }: { data: Data; setData: (f: (d: Data
           players={data.players}
           spots={spots}
           server={phase === 'serve'}
-          onMove={(i, p) => setDraft(Object.assign([...spots], { [i]: p }))}
           onDrop={save}
         />
 
