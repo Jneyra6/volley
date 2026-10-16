@@ -65,7 +65,7 @@ export default function App() {
       {/* Keyed by team so each tab starts fresh when you switch teams. */}
       <main key={activeTeam(root).id}>
         {tab === 'Roster' && <Roster data={data} setData={setData} root={root} setRoot={setRoot} switchTeam={switchTeam} />}
-        {tab === 'Rotations' && <Rotations data={data} setData={setData} />}
+        {tab === 'Rotations' && <Rotations data={data} setData={setData} teamName={activeTeam(root).name} />}
         {tab === 'Match' && <MatchScreen data={data} setData={setData} openId={openMatch} setOpenId={setOpenMatch} />}
         {tab === 'Game' && <Reports data={data} teamName={activeTeam(root).name} />}
         {tab === 'Season' && <Season data={data} setData={setData} teamName={activeTeam(root).name} />}

@@ -6,13 +6,14 @@ import {
 } from '../engine/systems'
 import type { Point } from '../engine/types'
 import { newId, type Data } from '../store'
+import { RotationsExport } from './RotationsExport'
 import { SetupEditor, setupComplete } from './SetupEditor'
 
 /**
  * Step through the six rotations of a system in each phase. Dragged positions save as soon as you let go,
  * and the Match tab uses saved Serving / Receiving formations.
  */
-export function Rotations({ data, setData }: { data: Data; setData: (f: (d: Data) => Data) => void }) {
+export function Rotations({ data, setData, teamName }: { data: Data; setData: (f: (d: Data) => Data) => void; teamName: string }) {
   const { setup } = data
   const [rotation, setRotation] = useState(1)
   const [phase, setPhase] = useState<Phase>('receive')
@@ -102,6 +103,7 @@ export function Rotations({ data, setData }: { data: Data; setData: (f: (d: Data
           <ul className="notes">{notes.map((n) => <li key={n}>{n}</li>)}</ul>
         </div>
       )}
+      <RotationsExport data={data} teamName={teamName} />
     </section>
   )
 }
