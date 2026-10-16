@@ -6,6 +6,7 @@ import { replay, teamOf } from '../engine/rotation'
 import { SYSTEMS, defaultFormation, formationKey, onCourt } from '../engine/systems'
 import type { Match, StatEvent, Team } from '../engine/types'
 import { newId, type Data } from '../store'
+import { everyone } from '../teams'
 import { MatchDetailsForm, defaultDetails, typeLabel, type Details } from './MatchDetails'
 import { SetupEditor, setupComplete } from './SetupEditor'
 
@@ -137,7 +138,12 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
   const [change, setChange] = useState<{ in?: string } | null>(null)
   useEffect(() => {
     if (!timeoutEnds) return
-    const t = setInterval(() => setNow(Date.now()), 250)
+    // Tick until the timeout is over, then stop.
+    const t = setInterval(() => {
+      const n = Date.now()
+      setNow(n)
+      if (n >= timeoutEnds) setTimeoutEnds(null)
+    }, 250)
     return () => clearInterval(t)
   }, [timeoutEnds])
 
@@ -156,7 +162,8 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
   // A match started from a saved rotation uses that rotation's formations; otherwise the team's current ones.
   const spots = (match.formations ?? data.formations)[formationKey(setup.system, state.rotation, phase)]
     ?? defaultFormation(setup.system, state.rotation, phase)
-  const byId = (id: string | null) => data.players.find((p) => p.id === id)
+  // Includes former players, so older matches still show their names.
+  const byId = (id: string | null) => everyone(data).find((p) => p.id === id)
 
   const updateMatch = (f: (m: Match) => Match) =>
     setData((d) => ({ ...d, matches: d.matches.map((m) => (m.id === match.id ? f(m) : m)) }))
@@ -474,7 +481,7 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
         </div>
       <Court
         court={court}
-        players={data.players}
+        players={everyone(data)}
         spots={spots}
         server={weServe && !inRally}
         selected={selected}

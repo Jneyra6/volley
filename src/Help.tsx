@@ -18,7 +18,8 @@ const GUIDE: Section[] = [
   {
     id: 'Roster', title: 'Roster and teams',
     points: [
-      'Add a player with their number, name and position, then tap Add. A team can have up to 14 players.',
+      'Add a player with their number, name and position, then tap Add. A team can have up to 14 players, each with their own jersey number.',
+      'Removing a player who has played in a match moves them to Former players, so their stats stay in reports and exports. Tap Restore to bring them back.',
       'Teams: add a team (for example JV and Varsity), rename it, or delete it. Each team has its own roster, rotations and matches.',
       'Backup: Save backup makes a file with everything; Restore backup brings it back on this or another device.',
       'On iPhone, the Home Screen app and Safari keep separate data, so always open Volley from the Home Screen icon.',

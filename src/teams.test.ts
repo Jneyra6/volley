@@ -33,3 +33,16 @@ describe('teams', () => {
     expect(next.matches.map((m) => [m.id, m.teamId])).toEqual([['m3', 'b'], ['m2', 'b'], ['m1', 'a']])
   })
 })
+
+describe('former players', () => {
+  it('knows who has match history', async () => {
+    const { hasMatchHistory } = await import('./teams')
+    const data = {
+      players: [], plans: [], seasons: [], archived: [], formations: {},
+      setup: { system: '5-1' as const, slots: [], libero: null },
+      matches: [{ ...match('m1'), sets: [{ lineup: [], firstServe: 'us' as const, events: [{ id: 'e', time: 0, code: 'kill', team: 'us' as const, playerId: 'p9' }] }] }],
+    }
+    expect(hasMatchHistory(data, 'p9')).toBe(true)
+    expect(hasMatchHistory(data, 'p1')).toBe(false)
+  })
+})

@@ -7,6 +7,7 @@ import { teamOf } from '../engine/rotation'
 import { count, fmt, teamRates } from '../engine/stats'
 import { MATCH_TYPES, type MatchType } from '../engine/types'
 import { newId, type Data } from '../store'
+import { everyone } from '../teams'
 import { MatchMeta } from './MatchScreen'
 import { Breakdowns } from './Breakdowns'
 import { StatTable } from './StatTable'
@@ -54,7 +55,7 @@ export function Season({ data, setData, teamName }: { data: Data; setData: (f: (
       ['Sets', totals.sets],
       [],
     ]
-    downloadText(`season-${fileSlug(teamName)}-${fileSlug(seasonName)}.csv`, toCsv([...filters, ...statSheet(totals.lines, data.players)]), 'text/csv')
+    downloadText(`season-${fileSlug(teamName)}-${fileSlug(seasonName)}.csv`, toCsv([...filters, ...statSheet(totals.lines, everyone(data))]), 'text/csv')
   }
 
   return (
@@ -110,7 +111,7 @@ export function Season({ data, setData, teamName }: { data: Data; setData: (f: (
 
           <div className="card">
             <div className="card-title">Player totals</div>
-            <StatTable lines={totals.lines} players={data.players} />
+            <StatTable lines={totals.lines} players={everyone(data)} />
           </div>
 
           <Breakdowns counts={ours} />

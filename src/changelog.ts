@@ -8,6 +8,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-10-16-fixes',
+    date: '2026-10-16',
+    title: 'Fixes from a full checkup',
+    items: [
+      'Removing a player no longer drops their stats from past games: they move to Former players and can be restored.',
+      'Two players can\'t share a jersey number (MaxPreps matches players by number).',
+      'Updated the PDF tool to its latest version for security fixes.',
+      'The timeout countdown stops running once it reaches zero.',
+    ],
+  },
+  {
     id: '2026-10-16-errors',
     date: '2026-10-16',
     title: 'More detail on errors, and Whose ball?',

@@ -24,6 +24,8 @@ export interface Squad {
   formations: Record<string, Point[]>
   plans?: SavedPlan[]
   seasons?: Season[]
+  /** Removed players who still have stats in past matches, kept so reports and exports don't lose them. */
+  archived?: Player[]
 }
 
 /** Everything the app stores. Matches belong to a team through match.teamId. */
@@ -41,6 +43,7 @@ export interface Data {
   formations: Record<string, Point[]>
   plans: SavedPlan[]
   seasons: Season[]
+  archived: Player[]
 }
 
 export const newId = () => Math.random().toString(36).slice(2, 10)
@@ -74,7 +77,7 @@ export const activeTeam = (root: Root) => root.teams.find((t) => t.id === root.a
 export function teamView(root: Root): Data {
   const t = activeTeam(root)
   return {
-    players: t.players, setup: t.setup, formations: t.formations, plans: t.plans ?? [], seasons: t.seasons ?? [],
+    players: t.players, setup: t.setup, formations: t.formations, plans: t.plans ?? [], seasons: t.seasons ?? [], archived: t.archived ?? [],
     matches: root.matches.filter((m) => m.teamId === t.id),
   }
 }
@@ -85,8 +88,20 @@ export function applyView(root: Root, view: Data): Root {
   return {
     ...root,
     teams: root.teams.map((x) =>
-      x.id === t.id ? { ...x, players: view.players, setup: view.setup, formations: view.formations, plans: view.plans, seasons: view.seasons } : x,
+      x.id === t.id ? { ...x, players: view.players, setup: view.setup, formations: view.formations, plans: view.plans, seasons: view.seasons, archived: view.archived } : x,
     ),
     matches: [...view.matches.map((m) => ({ ...m, teamId: t.id })), ...root.matches.filter((m) => m.teamId !== t.id)],
   }
+}
+
+/** Everyone who has played for the team: current roster plus archived players, for reports and exports. */
+export const everyone = (d: Data) => [...d.players, ...d.archived]
+
+/** True if the player appears anywhere in this team's matches (stats, lineups or subs). */
+export function hasMatchHistory(d: Data, playerId: string) {
+  return d.matches.some(
+    (m) =>
+      m.setup.slots.includes(playerId) || m.setup.libero === playerId ||
+      m.sets.some((s) => s.events.some((e) => e.playerId === playerId || e.out === playerId) || s.setup?.slots.includes(playerId)),
+  )
 }

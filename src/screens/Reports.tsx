@@ -6,6 +6,7 @@ import { downloadText } from '../download'
 import { fileSlug, matchInfoRows, maxPrepsFile, statSheet, toCsv } from '../engine/export'
 import { matchLines } from '../engine/report'
 import type { Data } from '../store'
+import { everyone } from '../teams'
 import { MatchMeta } from './MatchScreen'
 import { Breakdowns } from './Breakdowns'
 import { StatTable } from './StatTable'
@@ -17,19 +18,20 @@ export function Reports({ data, teamName }: { data: Data; teamName: string }) {
   const match = data.matches.find((m) => m.id === matchId)
   if (!match) return <section><div className="card"><div className="card-title">Game report</div><p className="empty">Record a match for this team first.</p></div></section>
 
+  const players = everyone(data)
   const report = matchLines(match)
   const d = new Date(match.date)
   const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   const base = `${day}-${fileSlug(match.opponent)}`
-  const exportMaxPreps = () => downloadText(`maxpreps-${base}.txt`, maxPrepsFile(report.lines, data.players))
+  const exportMaxPreps = () => downloadText(`maxpreps-${base}.txt`, maxPrepsFile(report.lines, players))
   const exportCsv = () =>
-    downloadText(`stats-${base}.csv`, toCsv([...matchInfoRows(match, teamName), ...statSheet(report.lines, data.players)]), 'text/csv')
+    downloadText(`stats-${base}.csv`, toCsv([...matchInfoRows(match, teamName), ...statSheet(report.lines, players)]), 'text/csv')
 
   const events: AnnotatedEvent[] = match.sets.flatMap((s) => replay(s).events)
   const team = teamRates(events)
   const used = (c: Counts) => Object.values(c).some((v) => typeof v === 'number' && v > 0)
   const rows = [
-    ...data.players.map((p) => ({ id: p.id, label: `#${p.number} ${p.name}`, c: count(events.filter((e) => e.playerId === p.id)) })),
+    ...players.map((p) => ({ id: p.id, label: `#${p.number} ${p.name}`, c: count(events.filter((e) => e.playerId === p.id)) })),
     { id: 'them', label: 'Opponent', c: count(events.filter((e) => teamOf(e) === 'them')) },
   ].filter(({ c }) => used(c))
   const ours = count(events.filter((e) => teamOf(e) === 'us'))
@@ -72,7 +74,7 @@ export function Reports({ data, teamName }: { data: Data; teamName: string }) {
 
       <div className="card">
         <div className="card-title">Players</div>
-        <StatTable lines={report.lines} players={data.players} opponent={rows.find((r) => r.id === 'them')?.c} />
+        <StatTable lines={report.lines} players={players} opponent={rows.find((r) => r.id === 'them')?.c} />
       </div>
 
       <div className="card">

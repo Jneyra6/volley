@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Player, Role } from '../engine/types'
 import { newId, type Data } from '../store'
-import { newSquad, type Root } from '../teams'
+import { hasMatchHistory, newSquad, type Root } from '../teams'
 import { Backup } from './Backup'
 
 /** Most players a team can carry. */
@@ -22,14 +22,44 @@ export function Roster({ data, setData, root, setRoot, switchTeam }: {
   const [name, setName] = useState('')
   const [role, setRole] = useState<Role>('OH')
 
+  const [error, setError] = useState('')
   const add = (e: React.FormEvent) => {
     e.preventDefault()
     const n = parseInt(number)
     if (isNaN(n) || !name.trim() || data.players.length >= MAX_PLAYERS) return
+    // MaxPreps matches players by jersey number, so numbers must be unique on the roster.
+    const taken = data.players.find((p) => p.number === n)
+    if (taken) {
+      setError(`#${n} is already ${taken.name}'s number.`)
+      return
+    }
     const p: Player = { id: newId(), number: n, name: name.trim(), role }
     setData((d) => ({ ...d, players: [...d.players, p].sort((a, b) => a.number - b.number) }))
     setNumber('')
     setName('')
+    setError('')
+  }
+  /** Players with match history move to Former players so their stats stay in reports; others are deleted. */
+  const remove = (p: Player) =>
+    setData((d) => ({
+      ...d,
+      players: d.players.filter((x) => x.id !== p.id),
+      archived: hasMatchHistory(d, p.id) ? [...d.archived, p] : d.archived,
+      // Take them out of the lineup too.
+      setup: {
+        ...d.setup,
+        slots: d.setup.slots.map((id) => (id === p.id ? '' : id)),
+        libero: d.setup.libero === p.id ? null : d.setup.libero,
+        subs: (d.setup.subs ?? []).filter((s) => s.in !== p.id && s.out !== p.id),
+      },
+    }))
+  const restore = (p: Player) => {
+    if (data.players.length >= MAX_PLAYERS || data.players.some((x) => x.number === p.number)) return
+    setData((d) => ({
+      ...d,
+      players: [...d.players, p].sort((a, b) => a.number - b.number),
+      archived: d.archived.filter((x) => x.id !== p.id),
+    }))
   }
 
   return (
@@ -48,6 +78,7 @@ export function Roster({ data, setData, root, setRoot, switchTeam }: {
           </select>
           <button type="submit" className="primary" disabled={data.players.length >= MAX_PLAYERS}>Add</button>
         </form>
+        {error && <p className="small bad" role="alert">{error}</p>}
         {data.players.length >= MAX_PLAYERS && (
           <p className="empty">The roster is full ({MAX_PLAYERS} players). Remove a player to add someone new.</p>
         )}
@@ -58,27 +89,33 @@ export function Roster({ data, setData, root, setRoot, switchTeam }: {
             <span className="jersey">{p.number}</span>
             <span className="grow">{p.name}</span>
             <span className={`role role-${p.role}`}>{p.role}</span>
-            <button
-              className="link quiet"
-              aria-label={`Remove ${p.name}`}
-              onClick={() =>
-                setData((d) => ({
-                  ...d,
-                  players: d.players.filter((x) => x.id !== p.id),
-                  // Take them out of the lineup too.
-                  setup: {
-                    ...d.setup,
-                    slots: d.setup.slots.map((id) => (id === p.id ? '' : id)),
-                    libero: d.setup.libero === p.id ? null : d.setup.libero,
-                  },
-                }))
-              }
-            >
+            <button className="link quiet" aria-label={`Remove ${p.name}`} onClick={() => remove(p)}>
               Remove
             </button>
           </li>
           ))}
         </ul>
+        {data.archived.length > 0 && (
+          <details className="inset">
+            <summary><span>Former players ({data.archived.length})</span></summary>
+            <p className="muted small">Removed players with stats in past matches. They still appear in Game, Season and exports.</p>
+            <ul className="list">
+              {data.archived.map((p) => {
+                const blocked = data.players.length >= MAX_PLAYERS || data.players.some((x) => x.number === p.number)
+                return (
+                  <li key={p.id}>
+                    <span className="jersey">{p.number}</span>
+                    <span className="grow">{p.name}</span>
+                    <span className={`role role-${p.role}`}>{p.role}</span>
+                    <button className="link small" disabled={blocked} title={blocked ? 'Roster full or number taken' : undefined} onClick={() => restore(p)}>
+                      Restore
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </details>
+        )}
       </div>
       <Backup root={root} setRoot={(r) => setRoot(() => r)} />
     </section>
