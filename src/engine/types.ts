@@ -35,8 +35,10 @@ export interface StatEvent {
   playerId: string | null
   /** Pass/serve quality, 0–3, for rated rally actions. */
   rating?: number
-  /** Attack type or fault kind, e.g. 'tip' or 'net'. */
+  /** Attack type, serve-error kind or fault kind, e.g. 'tip', 'long' or 'net'. */
   detail?: string
+  /** How an attack error happened: 'blocked', 'out' or 'net'. */
+  how?: string
   /** Manual score change ('adjust' events): points added to `team`, can be negative. */
   delta?: number
   /** Lineup change ('sub' events): the player going out. playerId is the player coming in. */

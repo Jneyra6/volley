@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Court } from '../Court'
-import { ACTIONS, ACTION_BY_CODE, DETAILS, RATINGS, actionAllowed, detailLabel } from '../engine/actions'
+import { ACTIONS, ACTION_BY_CODE, DETAILS, HOW, NO_PLAYER_NEEDED, RATINGS, actionAllowed, detailLabel } from '../engine/actions'
 import { TIMEOUTS_PER_SET, currentSetup, matchSummary, rallyInProgress, setTarget, subsUsed, timeoutsUsed } from '../engine/match'
 import { replay, teamOf } from '../engine/rotation'
 import { SYSTEMS, defaultFormation, formationKey, onCourt } from '../engine/systems'
@@ -122,7 +122,7 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
   /** A player id, 'them' for the opponent, or null. */
   const [selected, setSelected] = useState<string | null>(null)
   /** Action waiting for its rating or "what kind?" answer. */
-  const [pending, setPending] = useState<{ code: string; rating?: number } | null>(null)
+  const [pending, setPending] = useState<Pending | null>(null)
   /** Button tapped once and waiting for a second tap to confirm (an action code or 'timeout-us' / 'timeout-them'). */
   const [armed, setArmed] = useState<string | null>(null)
   /** Events taken back with Undo, newest last, for Redo. Cleared by any new entry or a new set. */
@@ -170,14 +170,17 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
     updateSet([...set.events, e])
     setRedo({ setIndex, events: [] })
   }
-  const record = (code: string, rating?: number, detail?: string) => {
+  const record = ({ code, rating, detail, how }: Pending) => {
     const e: StatEvent = { id: newId(), time: Date.now(), code, team: side, playerId: side === 'us' ? selected : null }
     if (rating !== undefined) e.rating = rating
     if (detail !== undefined) e.detail = detail
+    if (how !== undefined) e.how = how
     add(e)
     setPending(null)
     if (ACTION_BY_CODE[code].family !== 'rally') setSelected(null)
   }
+  /** Ask the next question this action needs (rating, then what kind, then what happened), or record it. */
+  const advance = (p: Pending) => (nextQuestion(p) ? setPending(p) : record(p))
   /** First tap arms a button, second tap confirms. Returns true on the confirming tap. */
   const confirmTap = (key: string) => {
     if (armed !== key) {
@@ -187,11 +190,10 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
     setArmed(null)
     return true
   }
-  /** Confirmed actions ask for a rating and/or "what kind?" first when they need one. */
+  /** Confirmed actions ask for a rating, "what kind?" and "what happened?" first when they need them. */
   const tap = (code: string) => {
     if (!confirmTap(code)) return
-    if (RATINGS[code] || DETAILS[code]) setPending({ code })
-    else record(code)
+    advance({ code })
   }
   const select = (id: string) => {
     setSelected(id === selected ? null : id)
@@ -394,15 +396,11 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
               <p className="full muted small">They take over that spot and rotate with it for the rest of the set.</p>
               <button className="link full" onClick={() => setChange(null)}>Cancel</button>
             </>
-          ) : pending && RATINGS[pending.code] && pending.rating === undefined ? (
+          ) : pending && nextQuestion(pending) === 'rating' ? (
             <>
               <b className="full">{ACTION_BY_CODE[pending.code].label}: how good was it?</b>
               {RATINGS[pending.code].map((r) => (
-                <button
-                  key={r.value}
-                  className="full rating"
-                  onClick={() => (DETAILS[pending.code] ? setPending({ ...pending, rating: r.value }) : record(pending.code, r.value))}
-                >
+                <button key={r.value} className="full rating" onClick={() => advance({ ...pending, rating: r.value })}>
                   <span className="rnum">{r.value}</span>
                   <span className="rlabel">{r.label}</span>
                   <span className="rhelp">{r.help}</span>
@@ -412,10 +410,19 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
             </>
           ) : pending ? (
             <>
-              <b className="full">{DETAILS[pending.code].prompt}</b>
-              {DETAILS[pending.code].options.map(([value, label]) => (
-                <button key={value} className="full" onClick={() => record(pending.code, pending.rating, value)}>{label}</button>
-              ))}
+              {(() => {
+                const q = nextQuestion(pending) === 'detail' ? DETAILS[pending.code] : HOW[pending.code]
+                const pick = (value: string) =>
+                  advance(nextQuestion(pending) === 'detail' ? { ...pending, detail: value } : { ...pending, how: value })
+                return (
+                  <>
+                    <b className="full">{q.prompt}</b>
+                    {q.options.map(([value, label]) => (
+                      <button key={value} className="full" onClick={() => pick(value)}>{label}</button>
+                    ))}
+                  </>
+                )
+              })()}
               <button className="link full" onClick={() => setPending(null)}>Cancel</button>
             </>
           ) : (
@@ -423,7 +430,7 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
               <button
                 key={a.code}
                 className={`${a.family} ${armed === a.code ? 'armed' : ''}`}
-                disabled={!selected || locked || !actionAllowed(a, side, state.serving, isServer)}
+                disabled={(!selected && !NO_PLAYER_NEEDED.has(a.code)) || locked || !actionAllowed(a, side, state.serving, isServer)}
                 onClick={() => tap(a.code)}
               >
                 {armed === a.code ? `Confirm ${a.label.replace('…', '')}?` : a.label}
@@ -486,7 +493,7 @@ function Live({ data, setData, match, close }: { data: Data; setData: SetData; m
                 e.code === 'adjust' ? `Manual change: ${teamOf(e) === 'us' ? 'Us' : 'Them'} ${(e.delta ?? 0) > 0 ? '+' : ''}${e.delta}` : <>
                 {e.code === 'timeout' ? (teamOf(e) === 'us' ? 'Our ' : 'Their ') : teamOf(e) === 'them' ? 'Opponent ' : p ? `#${p.number} ` : ''}
                 {ACTION_BY_CODE[e.code]?.label.replace('…', '')}</>}
-                {detailLabel(e.code, e.detail) ? `: ${detailLabel(e.code, e.detail)}` : ''}
+                {detailLabel(e.code, e.detail, e.how) ? `: ${detailLabel(e.code, e.detail, e.how)}` : ''}
                 {e.rating !== undefined ? ` (${e.rating})` : ''}
                 {e.winner && <span className={e.winner === 'us' ? 'ok' : 'bad'}> · point {e.winner}</span>}
               </li>
@@ -509,4 +516,19 @@ export function MatchMeta({ match: m }: { match: Match }) {
       {m.countsInSeason === false && <span>· not in season</span>}
     </span>
   )
+}
+
+/** An action waiting for its answers: rating (serve, pass), what kind, and what happened (attack errors). */
+interface Pending {
+  code: string
+  rating?: number
+  detail?: string
+  how?: string
+}
+
+function nextQuestion(p: Pending): 'rating' | 'detail' | 'how' | null {
+  if (RATINGS[p.code] && p.rating === undefined) return 'rating'
+  if (DETAILS[p.code] && p.detail === undefined) return 'detail'
+  if (HOW[p.code] && p.how === undefined) return 'how'
+  return null
 }

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { ATTACK_TYPES, FAULT_KINDS } from '../engine/actions'
 import { manualChanges } from '../engine/match'
 import { replay, teamOf, type AnnotatedEvent } from '../engine/rotation'
 import { count, fmt, teamRates, type Counts } from '../engine/stats'
@@ -8,6 +7,7 @@ import { fileSlug, matchInfoRows, maxPrepsFile, statSheet, toCsv } from '../engi
 import { matchLines } from '../engine/report'
 import type { Data } from '../store'
 import { MatchMeta } from './MatchScreen'
+import { Breakdowns } from './Breakdowns'
 import { StatTable } from './StatTable'
 
 /** Report for one game: scores, team rates, player stats, and exports (MaxPreps and spreadsheet). */
@@ -89,12 +89,7 @@ export function Reports({ data, teamName }: { data: Data; teamName: string }) {
         </p>
       </div>
 
-      {(Object.keys(ours.killTypes).length > 0 || Object.keys(ours.faultKinds).length > 0) && (
-        <div className="card">
-          <Breakdown title="Our kills by type" kinds={ATTACK_TYPES} counts={ours.killTypes} />
-          <Breakdown title="Our faults" kinds={FAULT_KINDS} counts={ours.faultKinds} />
-        </div>
-      )}
+      <Breakdowns counts={ours} />
 
       <div className="card">
       <div className="card-title">By rotation</div>
@@ -108,19 +103,6 @@ export function Reports({ data, teamName }: { data: Data; teamName: string }) {
       </table>
       </div>
     </section>
-  )
-}
-
-function Breakdown({ title, kinds, counts }: { title: string; kinds: [string, string][]; counts: Record<string, number> }) {
-  const shown = kinds.filter(([k]) => counts[k])
-  if (shown.length === 0) return null
-  return (
-    <>
-      <div className="card-title">{title}</div>
-      <div className="chips">
-        {shown.map(([k, label]) => <span key={k}>{label} <b>{counts[k]}</b></span>)}
-      </div>
-    </>
   )
 }
 

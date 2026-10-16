@@ -21,6 +21,12 @@ export interface Counts {
   killTypes: Record<string, number>
   /** Faults by kind, e.g. { net: 1 }. */
   faultKinds: Record<string, number>
+  /** Serve errors by kind, e.g. { net: 2, long: 1 }. */
+  serveErrKinds: Record<string, number>
+  /** Attack errors by result, e.g. { blocked: 3, out: 1 }. */
+  attackErrKinds: Record<string, number>
+  /** "Whose ball?" errors. */
+  whoseBall: number
 }
 
 const empty = (): Counts => ({
@@ -28,7 +34,7 @@ const empty = (): Counts => ({
   aces: 0, serveErrs: 0, serveAttempts: 0, servePoints: 0,
   passAttempts: 0, passPoints: 0, receiveErrs: 0,
   digs: 0, digErrs: 0, blocks: 0, blockErrs: 0, assists: 0, otherErrs: 0,
-  killTypes: {}, faultKinds: {},
+  killTypes: {}, faultKinds: {}, serveErrKinds: {}, attackErrKinds: {}, whoseBall: 0,
 })
 
 export function count(events: AnnotatedEvent[]): Counts {
@@ -39,10 +45,17 @@ export function count(events: AnnotatedEvent[]): Counts {
         c.kills++; c.attackAttempts++
         if (e.detail) c.killTypes[e.detail] = (c.killTypes[e.detail] ?? 0) + 1
         break
-      case 'attackErr': c.attackErrs++; c.attackAttempts++; break
+      case 'attackErr':
+        c.attackErrs++; c.attackAttempts++
+        if (e.how) c.attackErrKinds[e.how] = (c.attackErrKinds[e.how] ?? 0) + 1
+        break
       case 'attack': c.attackAttempts++; break
       case 'ace': c.aces++; c.serveAttempts++; c.servePoints += 4; break
-      case 'serveErr': c.serveErrs++; c.serveAttempts++; break
+      case 'serveErr':
+        c.serveErrs++; c.serveAttempts++
+        if (e.detail) c.serveErrKinds[e.detail] = (c.serveErrKinds[e.detail] ?? 0) + 1
+        break
+      case 'whoseBall': c.whoseBall++; c.otherErrs++; break
       case 'serve': c.serveAttempts++; c.servePoints += e.rating ?? 2; break
       case 'pass': c.passAttempts++; c.passPoints += e.rating ?? 2; break
       case 'receiveErr': c.receiveErrs++; c.passAttempts++; break

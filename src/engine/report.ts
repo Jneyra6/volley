@@ -20,7 +20,13 @@ export function addCounts(a: Counts, b: Counts): Counts {
     for (const [k, v] of Object.entries(y)) out[k] = (out[k] ?? 0) + v
     return out
   }
-  const out = { ...a, killTypes: sumMap(a.killTypes, b.killTypes), faultKinds: sumMap(a.faultKinds, b.faultKinds) }
+  const out = {
+    ...a,
+    killTypes: sumMap(a.killTypes, b.killTypes),
+    faultKinds: sumMap(a.faultKinds, b.faultKinds),
+    serveErrKinds: sumMap(a.serveErrKinds, b.serveErrKinds),
+    attackErrKinds: sumMap(a.attackErrKinds, b.attackErrKinds),
+  }
   for (const key of Object.keys(a) as (keyof Counts)[]) {
     if (typeof a[key] === 'number') (out[key] as number) = (a[key] as number) + (b[key] as number)
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ACTION_BY_CODE, actionAllowed } from './actions'
+import { ACTION_BY_CODE, actionAllowed, detailLabel } from './actions'
 import { manualChanges, rallyInProgress, timeoutsUsed } from './match'
 import { replay } from './rotation'
 import { count, teamRates } from './stats'
@@ -120,5 +120,38 @@ describe('manual score changes', () => {
     expect(replay(set).state).toMatchObject({ us: 11, them: 10 })
     expect(manualChanges(set)).toEqual({ us: 10, them: 10, count: 22 })
     expect(rallyInProgress(set.events.slice(0, -1))).toBe(false)
+  })
+})
+
+describe('error details', () => {
+  const lineup = ['a', 'b', 'c', 'd', 'e', 'f']
+  it('counts serve errors by kind and attack errors by result', () => {
+    const { events } = replay({
+      lineup, firstServe: 'us',
+      events: [
+        ev('serveErr', 'us', { detail: 'net' }), ev('serveErr', 'us', { detail: 'long' }), ev('serveErr', 'us', { detail: 'net' }),
+        ev('attackErr', 'us', { detail: 'spike', how: 'blocked' }), ev('attackErr', 'us', { detail: 'tip', how: 'out' }),
+      ],
+    })
+    const c = count(events)
+    expect(c.serveErrKinds).toEqual({ net: 2, long: 1 })
+    expect(c.attackErrKinds).toEqual({ blocked: 1, out: 1 })
+    expect(c.serveErrs).toBe(3)
+    expect(c.attackErrs).toBe(2)
+  })
+
+  it('whose ball is our error, with or without a player', () => {
+    const { state, events } = replay({
+      lineup, firstServe: 'them',
+      events: [ev('whoseBall', 'us', { playerId: null }), ev('whoseBall', 'us')],
+    })
+    expect(state).toMatchObject({ us: 0, them: 2 })
+    expect(count(events).whoseBall).toBe(2)
+  })
+
+  it('labels details for the rally log', () => {
+    expect(detailLabel('attackErr', 'spike', 'blocked')).toBe('Spike, blocked')
+    expect(detailLabel('serveErr', 'wide')).toBe('Out wide')
+    expect(detailLabel('dig')).toBeUndefined()
   })
 })

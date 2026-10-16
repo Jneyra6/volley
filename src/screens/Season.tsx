@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { ATTACK_TYPES } from '../engine/actions'
 import { downloadText } from '../download'
 import { fileSlug, statSheet, toCsv } from '../engine/export'
 import { matchSummary } from '../engine/match'
 import { record, seasonLines } from '../engine/report'
-import { fmt, teamRates } from '../engine/stats'
+import { teamOf } from '../engine/rotation'
+import { count, fmt, teamRates } from '../engine/stats'
 import { MATCH_TYPES, type MatchType } from '../engine/types'
 import { newId, type Data } from '../store'
 import { MatchMeta } from './MatchScreen'
+import { Breakdowns } from './Breakdowns'
 import { StatTable } from './StatTable'
 
 /** '' = every match, 'none' = matches with no season, otherwise a season id. */
@@ -29,10 +30,7 @@ export function Season({ data, setData, teamName }: { data: Data; setData: (f: (
   const totals = seasonLines(matches)
   const rec = record(matches)
   const rates = teamRates(totals.events)
-  const ourKills = totals.lines.reduce<Record<string, number>>((acc, l) => {
-    for (const [k, v] of Object.entries(l.counts.killTypes)) acc[k] = (acc[k] ?? 0) + v
-    return acc
-  }, {})
+  const ours = count(totals.events.filter((e) => teamOf(e) === 'us'))
   const seasonName = seasonId === '' ? 'All seasons' : seasonId === 'none' ? 'No season' : data.seasons.find((s) => s.id === seasonId)?.name ?? ''
 
   const toggleType = (t: MatchType) => setTypes((ts) => (ts.includes(t) ? ts.filter((x) => x !== t) : [...ts, t]))
@@ -115,14 +113,7 @@ export function Season({ data, setData, teamName }: { data: Data; setData: (f: (
             <StatTable lines={totals.lines} players={data.players} />
           </div>
 
-          {Object.keys(ourKills).length > 0 && (
-            <div className="card">
-              <div className="card-title">Kills by type</div>
-              <div className="chips">
-                {ATTACK_TYPES.filter(([k]) => ourKills[k]).map(([k, label]) => <span key={k}>{label} <b>{ourKills[k]}</b></span>)}
-              </div>
-            </div>
-          )}
+          <Breakdowns counts={ours} />
 
           <div className="card">
             <div className="card-head">

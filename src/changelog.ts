@@ -8,6 +8,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-10-16-errors',
+    date: '2026-10-16',
+    title: 'More detail on errors, and Whose ball?',
+    items: [
+      'Serve errors: into the net, out long or out wide.',
+      'Attack errors: the kind of attack, then blocked, out or into the net.',
+      'New Whose ball? error for when two players both go for the ball and both stop. Works with a player picked or as a team error.',
+      'Game and Season reports show a Kills and errors breakdown.',
+    ],
+  },
+  {
     id: '2026-10-16-install',
     date: '2026-10-16',
     title: 'Install reminder for browser users',

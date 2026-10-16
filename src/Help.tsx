@@ -43,6 +43,8 @@ const GUIDE: Section[] = [
       'Tap a player (or Opponent), then tap an action twice: once to pick it and again to confirm.',
       'Serve buttons only work for the server; receive buttons only for the team receiving.',
       'Some actions ask for a rating or what kind (tip, dump, net fault and so on); each choice explains itself.',
+      'Serve errors ask whether the serve went into the net, long or wide. Attack errors ask the kind of attack, then whether it was blocked, out or into the net.',
+      'Whose ball? is for when two players both go for the ball and then both stop. Pick a player to charge it to them, or tap it with nobody picked for a team error.',
       'Undo and Redo fix mistakes. Timeouts count up to 2 per team per set.',
       'Edit score lets you change the scoreboard (for example a set that starts at 10–10); it shows as a manual change in reports.',
       'Lineup change: tap a bench player, then who they replace. They take that spot for the rest of the set, even if someone gets hurt.',

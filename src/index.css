@@ -479,3 +479,5 @@ td.neg { color: var(--bad); font-weight: 600; }
 .install-warning { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--gold-soft); font-size: 0.8125rem; }
 .install-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
 .install-actions .primary { min-height: 38px; padding: 6px 18px; }
+
+.breakdown { display: flex; flex-direction: column; gap: 6px; }
