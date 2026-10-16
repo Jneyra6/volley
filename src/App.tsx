@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MatchScreen } from './screens/MatchScreen'
 import { Reports } from './screens/Reports'
 import { Roster } from './screens/Roster'
 import { Rotations } from './screens/Rotations'
 import { Season } from './screens/Season'
 import { HelpButton } from './Help'
+import { flushFeedbackQueue } from './feedback'
 import { InstallPrompt } from './InstallPrompt'
 import { UpdateBanner } from './UpdateBanner'
 import { useRoot } from './store'
@@ -42,6 +43,13 @@ export default function App() {
   const setData = (f: (d: Data) => Data) => setRoot((r) => applyView(r, f(teamView(r))))
   const [tab, setTab] = useState<Tab>(() => (data.players.length >= 6 ? 'Match' : 'Roster'))
   const [openMatch, setOpenMatch] = useState<string | null>(null)
+
+  // Send any feedback written while offline, now and whenever the connection comes back.
+  useEffect(() => {
+    flushFeedbackQueue()
+    window.addEventListener('online', flushFeedbackQueue)
+    return () => window.removeEventListener('online', flushFeedbackQueue)
+  }, [])
 
   const switchTeam = (id: string) => {
     setRoot((r: Root) => ({ ...r, activeTeamId: id }))

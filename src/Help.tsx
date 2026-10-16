@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CHANGELOG } from './changelog'
+import { FeedbackForm } from './FeedbackForm'
 import { shareVolley, siteUrl } from './site'
 
 type Section = { id: string; title: string; points: string[] }
@@ -15,6 +16,7 @@ const GUIDE: Section[] = [
       'Rotations: pick your system (5-1, 6-2 or 4-2), fill in the starting lineup and libero, then arrange formations.',
       'Match: start a match and tap stats as you play. Game and Season show the reports.',
       'Use the team menu in the top corner to switch between teams.',
+      'Volley is in beta: tap Send feedback (or the Feedback tab here) to tell us what works and what to add.',
     ],
   },
   {
@@ -108,7 +110,7 @@ const formatDate = (d: string) =>
 
 /** "?" button in the header that opens Help and What's new. */
 export function HelpButton({ tab }: { tab: string }) {
-  const [open, setOpen] = useState<null | 'help' | 'new'>(null)
+  const [open, setOpen] = useState<null | 'help' | 'new' | 'feedback'>(null)
   const [unseen, markSeen] = useUnseen()
   const [shareMsg, setShareMsg] = useState('')
   const share = async () => {
@@ -143,20 +145,28 @@ export function HelpButton({ tab }: { tab: string }) {
                 <button className={open === 'new' ? 'on' : ''} onClick={() => setOpen('new')}>
                   What's new{unseen && <span className="dot inline" aria-hidden="true" />}
                 </button>
+                <button className={open === 'feedback' ? 'on' : ''} onClick={() => setOpen('feedback')}>Feedback</button>
               </div>
               <button className="icon close" aria-label="Close" onClick={() => setOpen(null)}>×</button>
             </div>
 
             <div className="sheet-body">
-              <div className="share-card">
-                <div>
-                  <b>Know another coach?</b>
-                  <span className="muted small">Send them Volley. It's free.</span>
+              {open !== 'feedback' && (
+                <div className="share-card">
+                  <div>
+                    <b>Volley is in beta</b>
+                    <span className="muted small">Tell us what to improve, or send it to another coach.</span>
+                  </div>
+                  <div className="share-actions">
+                    <button className="primary" onClick={() => setOpen('feedback')}>Send feedback</button>
+                    <button onClick={share}>Share Volley</button>
+                  </div>
                 </div>
-                <button className="primary" onClick={share}>Share Volley</button>
-              </div>
+              )}
               {shareMsg && <p className="small" role="status">{shareMsg}</p>}
-              {open === 'help' ? (
+              {open === 'feedback' ? (
+                <FeedbackForm />
+              ) : open === 'help' ? (
                 GUIDE.map((s) => (
                   <details key={s.id} className="inset" open={s.id === tab}>
                     <summary><span>{s.title}{s.id === tab ? ' · this tab' : ''}</span></summary>

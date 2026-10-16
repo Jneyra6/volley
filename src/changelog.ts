@@ -8,6 +8,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-10-16-feedback',
+    date: '2026-10-16',
+    title: 'Send feedback from the app',
+    items: [
+      'Volley is in beta: tap ? and then Feedback to rate it and tell us what works, what\'s confusing, and what to add.',
+      'Feedback written without a signal is saved and sent automatically when you\'re back online.',
+      'The home page has a feedback link too.',
+    ],
+  },
+  {
     id: '2026-10-16-home',
     date: '2026-10-16',
     title: 'A home page, and sharing Volley',

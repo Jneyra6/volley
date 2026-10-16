@@ -485,3 +485,22 @@ td.neg { color: var(--bad); font-weight: 600; }
 .share-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: var(--radius); background: var(--accent-soft); }
 .share-card div { display: flex; flex-direction: column; }
 .share-card .primary { min-height: 40px; padding: 8px 14px; flex: none; }
+
+.share-card { flex-wrap: wrap; }
+.share-actions { display: flex; flex-direction: row !important; gap: 6px; }
+.share-actions button { min-height: 40px; padding: 8px 12px; }
+.feedback { display: flex; flex-direction: column; gap: 14px; }
+.feedback p { margin: 0; }
+.feedback fieldset { border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.feedback legend { font-size: 0.8125rem; font-weight: 600; color: var(--text-2); padding: 0; margin-bottom: 8px; }
+.rating-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.rating-row button { font-weight: 700; font-size: 1.05rem; }
+.rating-ends { display: flex; justify-content: space-between; }
+textarea {
+  width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong);
+  background: var(--surface); font: inherit; color: var(--text); resize: vertical; min-height: 72px;
+}
+.field textarea { font-size: 1rem; font-weight: 400; }
+.field input { color: var(--text); font-size: 1rem; font-weight: 400; }
+.feedback-done { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px; border-radius: var(--radius); background: var(--good-soft); }
+.feedback-done p { margin: 0; }
