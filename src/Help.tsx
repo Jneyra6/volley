@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CHANGELOG } from './changelog'
+import { shareVolley, siteUrl } from './site'
 
 type Section = { id: string; title: string; points: string[] }
 
@@ -9,6 +10,7 @@ const GUIDE: Section[] = [
   {
     id: 'start', title: 'Getting started',
     points: [
+      'New to Volley? See what it does on the home page: jneyra6.github.io/volley/about.',
       'Roster: add your players (up to 14) with their jersey numbers and positions.',
       'Rotations: pick your system (5-1, 6-2 or 4-2), fill in the starting lineup and libero, then arrange formations.',
       'Match: start a match and tap stats as you play. Game and Season show the reports.',
@@ -108,6 +110,11 @@ const formatDate = (d: string) =>
 export function HelpButton({ tab }: { tab: string }) {
   const [open, setOpen] = useState<null | 'help' | 'new'>(null)
   const [unseen, markSeen] = useUnseen()
+  const [shareMsg, setShareMsg] = useState('')
+  const share = async () => {
+    const r = await shareVolley()
+    setShareMsg(r === 'copied' ? 'Link copied. Paste it in a text or email.' : r === 'failed' ? `Share this link: ${siteUrl()}` : '')
+  }
   const dialog = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -141,6 +148,14 @@ export function HelpButton({ tab }: { tab: string }) {
             </div>
 
             <div className="sheet-body">
+              <div className="share-card">
+                <div>
+                  <b>Know another coach?</b>
+                  <span className="muted small">Send them Volley. It's free.</span>
+                </div>
+                <button className="primary" onClick={share}>Share Volley</button>
+              </div>
+              {shareMsg && <p className="small" role="status">{shareMsg}</p>}
               {open === 'help' ? (
                 GUIDE.map((s) => (
                   <details key={s.id} className="inset" open={s.id === tab}>

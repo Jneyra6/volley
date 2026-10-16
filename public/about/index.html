@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Volley · Volleyball rotations and live stats for coaches</title>
+  <meta name="description" content="Free volleyball app for coaches: rotations for 5-1, 6-2 and 4-2 with libero and subs, live match stats, MaxPreps export, season reports, and rotation PDFs to send to players. Works on your phone, offline in the gym." />
+  <link rel="canonical" href="https://jneyra6.github.io/volley/about/" />
+  <link rel="icon" type="image/svg+xml" href="../icon.svg" />
+  <link rel="apple-touch-icon" href="../icon-180.png" />
+  <meta name="theme-color" content="#1d4ed8" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Volley · Volleyball rotations and live stats" />
+  <meta property="og:description" content="Free for coaches. Rotations, live stats, MaxPreps export and rotation PDFs, on your phone and offline in the gym." />
+  <meta property="og:url" content="https://jneyra6.github.io/volley/about/" />
+  <meta property="og:image" content="https://jneyra6.github.io/volley/about/img/match.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <style>
+    :root {
+      --bg: #f3f5f8; --surface: #fff; --surface-2: #f6f8fb; --text: #0f172a; --text-2: #334155; --muted: #64748b;
+      --line: #e3e8ef; --accent: #1d4ed8; --accent-hover: #1e40af; --accent-soft: #e5edff; --good: #15803d; --gold: #f5b70a;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1020; --surface: #121a2b; --surface-2: #182236; --text: #e7ecf3; --text-2: #c3cddb; --muted: #8a97ab;
+        --line: #233049; --accent: #5b8cff; --accent-hover: #7aa2ff; --accent-soft: #1b2a4d; --good: #3ecf72;
+        color-scheme: dark;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text); line-height: 1.55;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+
+    header { padding: calc(16px + env(safe-area-inset-top)) 0 0; }
+    .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; text-decoration: none; color: var(--text); }
+    .brand img { width: 36px; height: 36px; border-radius: 10px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 22px;
+      border-radius: 12px; font-weight: 700; text-decoration: none; border: 1px solid var(--line); color: var(--text); background: var(--surface);
+    }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn.small { min-height: 40px; padding: 8px 16px; }
+
+    .hero { display: grid; gap: 40px; align-items: center; padding: 48px 0 32px; }
+    @media (min-width: 860px) { .hero { grid-template-columns: 1.1fr 0.9fr; padding: 72px 0 48px; } }
+    .eyebrow { display: inline-block; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.1; letter-spacing: -0.02em; margin: 14px 0 16px; }
+    .lead { font-size: 1.15rem; color: var(--text-2); margin: 0 0 24px; max-width: 34em; }
+    .ctas { display: flex; flex-wrap: wrap; gap: 10px; }
+    .checks { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 6px; color: var(--text-2); font-size: 0.95rem; }
+    .checks li::before { content: '✓'; color: var(--good); font-weight: 800; margin-right: 8px; }
+
+    .phone {
+      width: min(300px, 80vw); margin: 0 auto; border-radius: 34px; padding: 10px; background: #0f172a;
+      box-shadow: 0 30px 60px rgb(15 23 42 / 0.25);
+    }
+    .phone img { display: block; width: 100%; height: auto; border-radius: 26px; }
+
+    section.features { padding: 24px 0 8px; }
+    .feature { display: grid; gap: 28px; align-items: center; padding: 36px 0; border-top: 1px solid var(--line); }
+    @media (min-width: 860px) {
+      .feature { grid-template-columns: 1fr 1fr; gap: 56px; }
+      .feature:nth-child(even) .copy { order: 2; }
+    }
+    h2 { font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 12px; }
+    .copy p { color: var(--text-2); margin: 0 0 14px; }
+    .copy ul { margin: 0; padding-left: 20px; color: var(--text-2); display: grid; gap: 6px; }
+    .doc { width: min(420px, 92vw); margin: 0 auto; border-radius: 10px; border: 1px solid var(--line); box-shadow: 0 20px 40px rgb(15 23 42 / 0.15); background: #fff; }
+    .doc img { display: block; width: 100%; height: auto; border-radius: 10px; }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+    .install { display: grid; gap: 16px; margin: 24px 0; }
+    @media (min-width: 760px) { .install { grid-template-columns: 1fr 1fr; } }
+    .install h3 { margin: 0 0 8px; }
+    .install ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--text-2); }
+
+    .faq { display: grid; gap: 10px; margin: 20px 0 40px; }
+    details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+    summary { cursor: pointer; font-weight: 700; }
+    details p { margin: 10px 0 0; color: var(--text-2); }
+
+    .final { text-align: center; padding: 48px 0 64px; }
+    footer { border-top: 1px solid var(--line); padding: 20px 0 calc(28px + env(safe-area-inset-bottom)); color: var(--muted); font-size: 0.9rem; }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <a class="brand" href="./"><img src="../icon-192.png" alt="" width="36" height="36" />Volley</a>
+      <a class="btn primary small" href="../">Open Volley</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <div>
+        <span class="eyebrow">Free for coaches</span>
+        <h1>Volleyball rotations and live stats, on your phone.</h1>
+        <p class="lead">
+          Set up your rotations, track every point during the match, and upload your stats to MaxPreps in seconds.
+          Made for high school and club coaches.
+        </p>
+        <div class="ctas">
+          <a class="btn primary" href="../">Open Volley</a>
+          <a class="btn" href="#install">Add it to your phone</a>
+        </div>
+        <ul class="checks">
+          <li>Works offline in the gym</li>
+          <li>No account or sign-up</li>
+          <li>Your stats stay on your device</li>
+        </ul>
+      </div>
+      <div class="phone"><img src="img/match.jpg" alt="Volley live match screen with the score, serving team and player list" width="375" height="812" /></div>
+    </div>
+
+    <section class="features wrap" aria-label="Features">
+      <div class="feature">
+        <div class="copy">
+          <h2>Live stats in two taps</h2>
+          <p>Pick a player, tap the action twice to confirm, and keep your eyes on the court.</p>
+          <ul>
+            <li>Kills, aces, blocks, digs, assists, passes and serves with 0–3 ratings</li>
+            <li>Error details: serve into the net or out, attacks blocked or out, Whose ball?</li>
+            <li>Opponent stats, timeouts, undo and redo, and mid-set substitutions</li>
+            <li>Best of 3 or 5, with region, tournament and scrimmage games tracked separately</li>
+          </ul>
+        </div>
+        <div class="phone"><img src="img/game.jpg" alt="Game report with set scores, side-out percentage and player stats" width="375" height="812" loading="lazy" /></div>
+      </div>
+
+      <div class="feature">
+        <div class="copy">
+          <h2>Rotations that make sense</h2>
+          <p>Run a 5-1, 6-2 or 4-2. Volley knows when the libero comes in, who sets, and when your DS subs for an outside.</p>
+          <ul>
+            <li>Serve receive, serving, base and defense formations for all six rotations</li>
+            <li>Drag players into place, or tap a player and then the spot</li>
+            <li>Overlap check tells you if a formation is legal at the serve</li>
+            <li>Save rotations and start matches from them</li>
+          </ul>
+        </div>
+        <div class="phone"><img src="img/rotations.jpg" alt="Rotations screen showing a serve receive formation on the court" width="375" height="812" loading="lazy" /></div>
+      </div>
+
+      <div class="feature">
+        <div class="copy">
+          <h2>Send rotations to your players</h2>
+          <p>Make a PDF with your lineup and every rotation, then share it straight to your team chat or email.</p>
+          <ul>
+            <li>Rotation order, serve, serve receive and base pages, plus defenses if you want</li>
+            <li>Names, numbers and positions on every diagram</li>
+            <li>Notes on the libero, subs and who sets in each rotation</li>
+          </ul>
+        </div>
+        <div class="doc"><img src="img/pdf.jpg" alt="Rotations PDF page with all six rotations diagrammed" width="695" height="900" loading="lazy" /></div>
+      </div>
+
+      <div class="feature">
+        <div class="copy">
+          <h2>MaxPreps and season reports</h2>
+          <p>Export a game in MaxPreps' import format, or a spreadsheet for your athletic director.</p>
+          <ul>
+            <li>Game reports with sets played, per-set stats, hitting %, pass and serve ratings</li>
+            <li>Season totals and records by match type, with scrimmages kept out</li>
+            <li>Side-out and point-scoring percentages, and results by rotation</li>
+          </ul>
+        </div>
+        <div class="card">
+          <b>Volley's MaxPreps file</b>
+          <p style="color: var(--text-2); margin: 8px 0 0;">
+            Jersey, sets played, serves, aces, serve errors, serving points, attacks, kills, attack errors, receptions,
+            blocks, assists and digs, ready to import into each game.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="install" class="wrap" aria-label="Install">
+      <h2>Add Volley to your phone</h2>
+      <p style="color: var(--text-2); margin: 0;">It installs from your browser in a few seconds. No app store needed.</p>
+      <div class="install">
+        <div class="card">
+          <h3>iPhone or iPad</h3>
+          <ol>
+            <li>Open this page in <b>Safari</b> and tap <a href="../">Open Volley</a>.</li>
+            <li>Tap <b>Share</b>, then <b>Add to Home Screen</b>, then <b>Add</b>.</li>
+            <li>Open Volley from the new icon from now on.</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3>Android</h3>
+          <ol>
+            <li>Open this page in <b>Chrome</b> and tap <a href="../">Open Volley</a>.</li>
+            <li>Tap <b>Install</b> on the banner, or open the menu (⋮) and tap <b>Install app</b>.</li>
+            <li>Open Volley from your home screen.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" aria-label="Questions">
+      <h2>Questions</h2>
+      <div class="faq">
+        <details>
+          <summary>Is Volley free?</summary>
+          <p>Yes. Everything on this page is free to use.</p>
+        </details>
+        <details>
+          <summary>Where are my teams and stats saved?</summary>
+          <p>On your phone or tablet. Nothing is sent to a server and there's no account. Use Save backup on the Roster tab to keep a copy or move everything to another device.</p>
+        </details>
+        <details>
+          <summary>Does it work without internet?</summary>
+          <p>Yes. Once it's on your Home Screen, Volley works offline, so a weak gym signal won't stop you from keeping stats.</p>
+        </details>
+        <details>
+          <summary>How do I get my stats into MaxPreps?</summary>
+          <p>In the Game tab, tap MaxPreps file to save a .txt file, then import it into that game on MaxPreps. Jersey numbers need to match your MaxPreps roster.</p>
+        </details>
+        <details>
+          <summary>Which rotation systems does it support?</summary>
+          <p>5-1, 6-2 and 4-2, with a libero and planned subs such as a defensive specialist for an outside hitter.</p>
+        </details>
+      </div>
+    </section>
+
+    <div class="wrap final">
+      <h2>Ready for your next match?</h2>
+      <p style="color: var(--text-2);">Open Volley, add your roster, and you're set.</p>
+      <a class="btn primary" href="../">Open Volley</a>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Volley · volleyball rotations and stats for coaches</span>
+      <a href="../">Open Volley</a>
+    </div>
+  </footer>
+</body>
+</html>

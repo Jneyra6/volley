@@ -1,7 +1,7 @@
 # Volley
 
 Volleyball rotations, live match stats and reports. Runs in the browser and installs to a phone's home screen;
-works offline once loaded. Live at https://jneyra6.github.io/volley/
+works offline once loaded. Live at https://jneyra6.github.io/volley/ (home page: https://jneyra6.github.io/volley/about/, a static page in `public/about/`)
 
 ## Features
 

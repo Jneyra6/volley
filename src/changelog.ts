@@ -8,6 +8,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-10-16-home',
+    date: '2026-10-16',
+    title: 'A home page, and sharing Volley',
+    items: [
+      'New home page at jneyra6.github.io/volley/about that explains what Volley does, with screenshots and how to install it.',
+      'Share Volley button in Help: send the link to another coach by text, email or any app.',
+      'Rotations PDFs now show the Volley web address at the bottom of every page.',
+    ],
+  },
+  {
     id: '2026-10-16-fixes',
     date: '2026-10-16',
     title: 'Fixes from a full checkup',

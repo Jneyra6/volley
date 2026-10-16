@@ -481,3 +481,7 @@ td.neg { color: var(--bad); font-weight: 600; }
 .install-actions .primary { min-height: 38px; padding: 6px 18px; }
 
 .breakdown { display: flex; flex-direction: column; gap: 6px; }
+
+.share-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: var(--radius); background: var(--accent-soft); }
+.share-card div { display: flex; flex-direction: column; }
+.share-card .primary { min-height: 40px; padding: 8px 14px; flex: none; }

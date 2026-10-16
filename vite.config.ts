@@ -46,7 +46,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // jsPDF's optional add-ons for HTML and SVG rendering; the rotations PDF doesn't use them.
-        globIgnores: ['**/html2canvas*.js', '**/purify*.js', '**/index.es-*.js'],
+        globIgnores: ['**/html2canvas*.js', '**/purify*.js', '**/index.es-*.js', 'about/**'],
+        // The /about/ home page is a normal web page; don't answer it with the app.
+        navigateFallbackDenylist: [/\/about\//],
       },
     }),
   ],

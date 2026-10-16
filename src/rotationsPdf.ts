@@ -4,6 +4,7 @@ import {
 } from './engine/systems'
 import { HOME } from './engine/rotation'
 import type { Player, Point } from './engine/types'
+import { siteLabel, siteUrl } from './site'
 
 export interface RotationsPdfInput {
   teamName: string
@@ -127,7 +128,10 @@ function footer(doc: JsPDFType, page: number, total: number) {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(C.muted)
-  doc.text(`Made with Volley · ${new Date().toLocaleDateString()}`, M, PAGE_H - 20)
+  // Every page tells players and parents where the app lives (a tappable link in PDF viewers).
+  const made = `Made with Volley · ${siteLabel()}`
+  doc.textWithLink(made, M, PAGE_H - 20, { url: siteUrl() })
+  doc.text(new Date().toLocaleDateString(), PAGE_W / 2, PAGE_H - 20, { align: 'center' })
   doc.text(`Page ${page} of ${total}`, PAGE_W - M, PAGE_H - 20, { align: 'right' })
 }
 
